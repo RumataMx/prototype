@@ -368,7 +368,7 @@
 
   // Internet Explorer needs to remove event handlers on page unload
   // in order to avoid memory leaks.
-  if (Prototype.Browser.IE)
+  if (window.attachEvent && !window.addEventListener)
     window.attachEvent('onunload', _destroyCache);
 
   // Safari needs a dummy event handler on page unload so that it won't

@@ -1,4 +1,6 @@
-* Remove expensive (for such low-level method) internal `getClass` in favor of plain string comparison (kangax)
+* Remove sniffing when attaching an "unload" event. (kangax)
+
+* Remove expensive (for such low-level method) internal `getClass` in favor of plain string comparison. (kangax)
 
 * Do not sniff when testing for IE's proprietary mouseenter/mouseleave events support. Use more robust inference instead. (kangax)
 

@@ -1,3 +1,5 @@
+* Remove expensive (for such low-level method) internal `getClass` in favor of plain string comparison (kangax)
+
 * Do not sniff when testing for IE's proprietary mouseenter/mouseleave events support. Use more robust inference instead. (kangax)
 
 * Use `Prototype.emptyFunction` consistently throughout unit tests. [#253 state:resolved] (Michael M Slusarz, John David Dalton, kangax)

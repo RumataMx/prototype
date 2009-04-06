@@ -1,3 +1,5 @@
+* Remove sniffing and simplify logic of `getOffsetParent`. Avoid try/catch all together. (kangax)
+
 * `Prototype.Browser.Opera` now uses stronger inference and is determined by [[Class]] of `window.opera` being - "Opera". (kangax)
 
 * Remove superfluous iframe test in `Element#readAttribute`. Instead, always use `getAtrribute` without flags when getting a "type" attribute of an IFRAME. [#631 state:resolved] (michael (at mdaines), Tobie Langel, kangax)

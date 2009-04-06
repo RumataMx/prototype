@@ -1062,16 +1062,37 @@ Element.Methods = {
    *  Returns `element`’s closest _positioned_ ancestor. If none is found, the
    *  `body` element is returned.
   **/
-  getOffsetParent: function(element) {
-    if (element.offsetParent) return $(element.offsetParent);
-    if (element == document.body) return $(element);
+  getOffsetParent: (function(){
     
-    while ((element = element.parentNode) && element != document.body)
-      if (Element.getStyle(element, 'position') != 'static')
-        return $(element);
+    // IE throws an "Unspecified error" when accessing `offsetParent` of an orphaned element without `parentNode`
+    // It does not throw when an element is orphaned from the document, but has a `parentNode`
+    var OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT = (function(){
+      var el = document.createElement('div'), 
+          result = false;
+      try { el.offsetParent; }
+      catch(e) { result = true; }
+      el = null;
+      return result;
+    })();
+    
+    function getOffsetParent(element) {
+      if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !element.parentNode) {
+        return $(document.body);
+      }
+      if (element.offsetParent && 
+          Element.getStyle(element.offsetParent, 'position') !== 'static') {
+        return $(element.offsetParent);
+      }
+      if (element == document.body) return $(element);
 
-    return $(document.body);
-  },
+      while ((element = element.parentNode) && element != document.body)
+        if (Element.getStyle(element, 'position') != 'static')
+          return $(element);
+
+      return $(document.body);
+    }
+    return getOffsetParent;
+  })(),
 
   /**
    *  Element#viewportOffset(@element) -> Array
@@ -1224,22 +1245,6 @@ if (Prototype.Browser.Opera) {
 }
 
 else if (Prototype.Browser.IE) {
-  // IE doesn't report offsets correctly for static elements, so we change them
-  // to "relative" to get the values, then change them back.  
-  Element.Methods.getOffsetParent = Element.Methods.getOffsetParent.wrap(
-    function(proceed, element) {
-      element = $(element);
-      // IE throws an error if element is not in document
-      try { element.offsetParent }
-      catch(e) { return $(document.body) }
-      var position = element.getStyle('position');
-      if (position !== 'static') return proceed(element);
-      element.setStyle({ position: 'relative' });
-      var value = proceed(element);
-      element.setStyle({ position: position });
-      return value;
-    }
-  );
   
   $w('positionedOffset viewportOffset').each(function(method) {
     Element.Methods[method] = Element.Methods[method].wrap(

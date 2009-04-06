@@ -593,27 +593,10 @@ Element.Methods = {
    *  Returns the value of `element`'s attribute with the given name.
   **/
   readAttribute: (function(){
-    
-    var iframeGetAttributeThrowsError = (function(){
-      var el = document.createElement('iframe'),
-          isBuggy = false;
-          
-      document.documentElement.appendChild(el);
-      try {
-        el.getAttribute('type', 2);
-      } catch(e) {
-        isBuggy = true;
-      }
-      document.documentElement.removeChild(el);
-      el = null;
-      return isBuggy;
-    })();
-    
-    return function(element, name) {
+    function readAttribute(element, name) {
       element = $(element);
-      // check boolean first, to get out of expression faster
-      if (iframeGetAttributeThrowsError &&
-          name === 'type' && 
+      // IE throws error when invoking getAttribute("type", 2) on an iframe
+      if (name === 'type' && 
           element.tagName.toUpperCase() == 'IFRAME') {
         return element.getAttribute('type');
       }
@@ -628,6 +611,7 @@ Element.Methods = {
       }      
       return element.getAttribute(name);
     }
+    return readAttribute;
   })(),
   
   /**

@@ -1,3 +1,5 @@
+* Remove superfluous iframe test in `Element#readAttribute`. Instead, always use `getAtrribute` without flags when getting a "type" attribute of an IFRAME. [#631 state:resolved] (michael (at mdaines), Tobie Langel, kangax)
+
 * Remove sniffing when attaching an "unload" event. (kangax)
 
 * Remove expensive (for such low-level method) internal `getClass` in favor of plain string comparison. (kangax)

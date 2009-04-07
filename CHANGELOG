@@ -1,3 +1,5 @@
+* Remove IE sniff for `setOpacity`. Instead, branch based on a presence of either "opacity" or proprietary "filter" properties in CSSStyleDeclaration object. Combine all `setOpacity` overrides in one place. (kangax)
+
 * `cumulativeOffset` is not forked based on sniff any more. Test for orphaned element throwing error is now shared between `cumulativeOffset` and `getOffsetParent`. (kangax)
 
 * Remove most of the sniffing from Event module. `Event.prototype`-based extension is now used when available (e.g. in IE8) (kangax)

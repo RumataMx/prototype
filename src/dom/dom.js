@@ -943,25 +943,6 @@ Element.Methods = {
   },
 
   /**
-   *  Element#cumulativeOffset(@element) -> Array
-   *  
-   *  Returns the offsets of `element` from the top left corner of the
-   *  document.
-   *  
-   *  Returns an array in the form of `[leftValue, topValue]`. Also accessible
-   *  as properties: `{ left: leftValue, top: topValue }`.
-  **/
-  cumulativeOffset: function(element) {
-    var valueT = 0, valueL = 0;
-    do {
-      valueT += element.offsetTop  || 0;
-      valueL += element.offsetLeft || 0;
-      element = element.offsetParent;
-    } while (element);
-    return Element._returnOffset(valueL, valueT);
-  },
-
-  /**
    *  Element#positionedOffset(@element) -> Array
    *  
    *  Returns `element`’s offset relative to its closest positioned ancestor
@@ -1055,44 +1036,6 @@ Element.Methods = {
     } while (element);
     return Element._returnOffset(valueL, valueT);
   },
-  
-  /**
-   *  Element#getOffsetParent(@element) -> Element
-   *  
-   *  Returns `element`’s closest _positioned_ ancestor. If none is found, the
-   *  `body` element is returned.
-  **/
-  getOffsetParent: (function(){
-    
-    // IE throws an "Unspecified error" when accessing `offsetParent` of an orphaned element without `parentNode`
-    // It does not throw when an element is orphaned from the document, but has a `parentNode`
-    var OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT = (function(){
-      var el = document.createElement('div'), 
-          result = false;
-      try { el.offsetParent; }
-      catch(e) { result = true; }
-      el = null;
-      return result;
-    })();
-    
-    function getOffsetParent(element) {
-      if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !element.parentNode) {
-        return $(document.body);
-      }
-      if (element.offsetParent && 
-          Element.getStyle(element.offsetParent, 'position') !== 'static') {
-        return $(element.offsetParent);
-      }
-      if (element == document.body) return $(element);
-
-      while ((element = element.parentNode) && element != document.body)
-        if (Element.getStyle(element, 'position') != 'static')
-          return $(element);
-
-      return $(document.body);
-    }
-    return getOffsetParent;
-  })(),
 
   /**
    *  Element#viewportOffset(@element) -> Array
@@ -1266,14 +1209,6 @@ else if (Prototype.Browser.IE) {
       }
     );
   });
-  
-  Element.Methods.cumulativeOffset = Element.Methods.cumulativeOffset.wrap(
-    function(proceed, element) {
-      try { element.offsetParent }
-      catch(e) { return Element._returnOffset(0,0) }
-      return proceed(element);
-    }
-  );
     
   Element.Methods.getStyle = function(element, style) {
     element = $(element);
@@ -1997,3 +1932,67 @@ Element.addMethods({
     return Element.extend(clone);
   }
 });
+
+(function(){
+  
+  // IE throws an "Unspecified error" when accessing `offsetParent` of an orphaned element without `parentNode`
+  // It does not throw when an element is orphaned from the document, but has a `parentNode`
+  var OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT = (function(){
+    var el = document.createElement('div'), 
+        result = false;
+    try { el.offsetParent; }
+    catch(e) { result = true; }
+    el = null;
+    return result;
+  })();
+  
+  /**
+   *  Element#cumulativeOffset(@element) -> Array
+   *  
+   *  Returns the offsets of `element` from the top left corner of the
+   *  document.
+   *  
+   *  Returns an array in the form of `[leftValue, topValue]`. Also accessible
+   *  as properties: `{ left: leftValue, top: topValue }`.
+  **/
+  function cumulativeOffset(element) {
+    if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !element.parentNode) { // IE
+      return Element._returnOffset(0,0);
+    }
+    var valueT = 0, valueL = 0;
+    do {
+      valueT += element.offsetTop  || 0;
+      valueL += element.offsetLeft || 0;
+      element = element.offsetParent;
+    } while (element);
+    return Element._returnOffset(valueL, valueT);
+  }
+  
+  /**
+   *  Element#getOffsetParent(@element) -> Element
+   *  
+   *  Returns `element`’s closest _positioned_ ancestor. If none is found, the
+   *  `body` element is returned.
+  **/
+  function getOffsetParent(element) {
+    if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !element.parentNode) { // IE
+      return $(document.body);
+    }
+    if (element.offsetParent && 
+        Element.getStyle(element.offsetParent, 'position') !== 'static') {
+      return $(element.offsetParent);
+    }
+    if (element == document.body) return $(element);
+
+    while ((element = element.parentNode) && element != document.body)
+      if (Element.getStyle(element, 'position') != 'static')
+        return $(element);
+
+    return $(document.body);
+  }
+  
+  Element.addMethods({
+    cumulativeOffset:   cumulativeOffset,
+    getOffsetParent:    getOffsetParent
+  })
+})();

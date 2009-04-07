@@ -117,8 +117,9 @@
   function element(event) {
     event = Event.extend(event);
 
-    var node = event.target, type = event.type,
-     currentTarget = event.currentTarget;
+    var node = event.target || event.srcElement, // IE8
+        type = event.type,
+        currentTarget = event.currentTarget;
 
     if (currentTarget && currentTarget.tagName) {
       // Firefox screws up the "click" event when moving between radio buttons
@@ -236,32 +237,86 @@
 
     stop: stop
   };
-
-
-  // Compile the list of methods that get extended onto Events.
-  var methods = Object.keys(Event.Methods).inject({ }, function(m, name) {
-    m[name] = Event.Methods[name].methodize();
-    return m;
-  });
-
-  if (Prototype.Browser.IE) {
-    function _relatedTarget(event) {
-      var element;
-      switch (event.type) {
-        case 'mouseover': element = event.fromElement; break;
-        case 'mouseout':  element = event.toElement;   break;
-        default: return null;
+  
+  var tests = { };
+      
+  (function(){
+    
+    var id = '_' + (Math.random() + '').slice(2),
+        docEl = document.documentElement;
+        
+    if (window.Event && window.Event.prototype) {
+      window.Event.prototype[id] = function(){ 
+        return this; 
       }
-      return Element.extend(element);
     }
 
-    Object.extend(methods, {
-      stopPropagation: function() { this.cancelBubble = true },
-      preventDefault:  function() { this.returnValue = false },
-      inspect: function() { return '[object Event]' }
-    });
-
-    // IE's method for extending events.
+    var el = document.createElement('input');
+    el.type = 'checkbox';
+    el.onclick = function(e) {
+      e = e || window.event;
+      // check that method exists and sets context properly
+      tests.HAS_EVENT_EXTENSIONS = id in e && (e[id]() === e);
+      tests.HAS_CANCEL_BUBBLE = 'cancelBubble' in e;
+      tests.HAS_RETURN_VALUE = 'returnValue' in e;
+      tests.HAS_STOP_PROPAGATION = 'stopPropagation' in e;
+      tests.HAS_PREVENT_DEFAULT = 'preventDefault' in e;
+    }
+    docEl.appendChild(el);
+    el.click();
+    
+    // cleanup
+    docEl.removeChild(el)
+    if (window.Event && window.Event.prototype) {
+      delete window.Event.prototype[id];
+    }
+    el.onclick = null;
+    el = null;
+    
+  })();  
+  
+  // Compile the list of methods that get extended onto Events.
+  var methods = { };
+  for (var name in Event.Methods) {
+    methods[name] = Event.Methods[name].methodize();
+  }
+  
+  function _relatedTarget(event) {
+    var element;
+    switch (event.type) {
+      case 'mouseover': element = event.fromElement; break;
+      case 'mouseout':  element = event.toElement;   break;
+      default: return null;
+    }
+    return Element.extend(element);
+  }
+  function stopPropagation() {
+    this.cancelBubble = true;
+  }
+  function preventDefault() {
+    this.returnValue = false;
+  }
+  function inspect() {
+    return '[object Event]';
+  }
+  
+  if (!tests.HAS_STOP_PROPAGATION && tests.HAS_CANCEL_BUBBLE) {
+    methods.stopPropagation = stopPropagation;
+  }
+  if (!tests.HAS_PREVENT_DEFAULT && tests.HAS_RETURN_VALUE) {
+    methods.preventDefault = preventDefault;
+  }
+  if (!tests.HAS_EVENT_EXTENSIONS) {
+    methods.inspect = inspect;
+  }
+  
+  if (tests.HAS_EVENT_EXTENSIONS) {
+    Event.prototype = window.Event.prototype || document.createEvent('HTMLEvents').__proto__;
+    Object.extend(Event.prototype, methods);
+    Event.extend = Prototype.K;
+  }
+  else {
+    // IE<8 doesn't support Event extensions
     Event.extend = function(event, element) {
       if (!event) return false;
       if (event._extendedByPrototype) return event;
@@ -280,10 +335,6 @@
       
       return Object.extend(event, methods);
     };
-  } else {
-    Event.prototype = window.Event.prototype || document.createEvent('HTMLEvents').__proto__;
-    Object.extend(Event.prototype, methods);
-    Event.extend = Prototype.K;
   }
 
   function _createResponder(element, eventName, handler) {
@@ -595,7 +646,14 @@
   });
 
   // Export to the global scope.
-  if (window.Event) Object.extend(window.Event, Event);
+  if (window.Event) {
+    for (var prop in Event) {
+      // IE8 doesn't allow to override `window.Event.prototype`
+      if (prop !== 'prototype') {
+        window.Event[prop] = Event[prop];
+      }
+    }
+  }
   else window.Event = Event;
 })();
 

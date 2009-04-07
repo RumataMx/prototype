@@ -1,3 +1,5 @@
+* Remove most of the sniffing from Event module. `Event.prototype`-based extension is now used when available (e.g. in IE8) (kangax)
+
 * Remove sniffing and simplify logic of `getOffsetParent`. Avoid try/catch all together. (kangax)
 
 * `Prototype.Browser.Opera` now uses stronger inference and is determined by [[Class]] of `window.opera` being - "Opera". (kangax)

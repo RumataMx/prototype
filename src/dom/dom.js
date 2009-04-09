@@ -1075,39 +1075,6 @@ Element.Methods = {
     } while (element);
     return Element._returnOffset(valueL, valueT);
   },
-
-  /**
-   *  Element#viewportOffset(@element) -> Array
-   *  
-   *  Returns the X/Y coordinates of element relative to the viewport.
-   *  
-   *  Returns an array in the form of `[leftValue, topValue]`. Also accessible
-   *  as properties: `{ left: leftValue, top: topValue }`.
-  **/
-  viewportOffset: function(forElement) {
-    var valueT = 0, valueL = 0;
-
-    var element = forElement;
-    do {
-      valueT += element.offsetTop  || 0;
-      valueL += element.offsetLeft || 0;
-
-      // Safari fix
-      if (element.offsetParent == document.body &&
-        Element.getStyle(element, 'position') == 'absolute') break;
-
-    } while (element = element.offsetParent);
-
-    element = forElement;
-    do {
-      if (!Prototype.Browser.Opera || (element.tagName && (element.tagName.toUpperCase() == 'BODY'))) {
-        valueT -= element.scrollTop  || 0;
-        valueL -= element.scrollLeft || 0;
-      }
-    } while (element = element.parentNode);
-
-    return Element._returnOffset(valueL, valueT);
-  },
   
   /**
    *  Element#clonePosition(@element, source[, options]) -> Element
@@ -1227,25 +1194,6 @@ if (Prototype.Browser.Opera) {
 }
 
 else if (Prototype.Browser.IE) {
-  
-  Element.Methods.viewportOffset = Element.Methods.viewportOffset.wrap(
-    function(proceed, element) {
-      element = $(element);
-      try { element.offsetParent }
-      catch(e) { return Element._returnOffset(0,0) }
-      var position = element.getStyle('position');
-      if (position !== 'static') return proceed(element);
-      // Trigger hasLayout on the offset parent so that IE6 reports
-      // accurate offsetTop and offsetLeft values for position: fixed.
-      var offsetParent = element.getOffsetParent();
-      if (offsetParent && offsetParent.getStyle('position') === 'fixed')
-        offsetParent.setStyle({ zoom: 1 });
-      element.setStyle({ position: 'relative' });
-      var value = proceed(element);
-      element.setStyle({ position: position });
-      return value;
-    }
-  );
     
   Element.Methods.getStyle = function(element, style) {
     element = $(element);
@@ -2028,9 +1976,72 @@ Element.addMethods({
     );
   }
   
+  /**
+   *  Element#viewportOffset(@element) -> Array
+   *  
+   *  Returns the X/Y coordinates of element relative to the viewport.
+   *  
+   *  Returns an array in the form of `[leftValue, topValue]`. Also accessible
+   *  as properties: `{ left: leftValue, top: topValue }`.
+  **/
+  function viewportOffset(forElement) {
+    if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !forElement.parentNode) { // IE
+      return Element._returnOffset(0, 0)
+    }
+    var valueT = 0, valueL = 0;
+
+    var element = forElement;
+    do {
+      valueT += element.offsetTop  || 0;
+      valueL += element.offsetLeft || 0;
+
+      // Safari fix
+      if (element.offsetParent == document.body &&
+        Element.getStyle(element, 'position') == 'absolute') break;
+
+    } while (element = element.offsetParent);
+
+    element = forElement;
+    do {
+      if (!Prototype.Browser.Opera || (element.tagName && 
+          (element.tagName.toUpperCase() == 'BODY'))) {
+        valueT -= element.scrollTop  || 0;
+        valueL -= element.scrollLeft || 0;
+      }
+    } while (element = element.parentNode);
+
+    return Element._returnOffset(valueL, valueT);
+  }
+  
+  if (Prototype.Browser.IE) {
+    viewportOffset = viewportOffset.wrap(
+      function(proceed, element) {
+        element = $(element);
+        var position = Element.getStyle(element, 'position');
+        
+        if (position !== 'static') return proceed(element);
+        
+        // Trigger hasLayout on the offset parent so that IE6 reports
+        // accurate offsetTop and offsetLeft values for position: fixed.
+        var offsetParent = Element.getOffsetParent(element);
+        var offsetParentPosition = Element.getStyle(offsetParent, 'position');
+        
+        if (offsetParent && offsetParentPosition === 'fixed') {
+          offsetParent.style.zoom = 1;
+        }
+          
+        element.style.position = 'relative';
+        var value = proceed(element);
+        element.style.position = position;
+        return value;
+      }
+    );
+  }
+  
   Element.addMethods({
     cumulativeOffset:   cumulativeOffset,
     positionedOffset:   positionedOffset,
+    viewportOffset:     viewportOffset,
     getOffsetParent:    getOffsetParent
   })
 })();

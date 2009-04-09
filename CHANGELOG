@@ -1,4 +1,6 @@
-* `positionedOffset` forking is now done in one place. Use value of test for orphaned elements instead of try catch. Do not use `setStyle` in `offsetParent` when pain style assignment suffices. (kangax)
+* Perform same changes to `viewportOffset` (unified fork, perf. improvements) as the ones in the previous commit. (kangax)
+
+* `positionedOffset` forking is now done in one place. Use value of test for orphaned elements instead of try catch. Do not use `setStyle` in `offsetParent` when plain style assignment suffices. (kangax)
 
 * Remove IE sniff for `setOpacity`. Instead, branch based on a presence of either "opacity" or proprietary "filter" properties in CSSStyleDeclaration object. Combine all `setOpacity` overrides in one place. (kangax)
 

@@ -1006,30 +1006,6 @@ Element.Methods = {
   },
 
   /**
-   *  Element#positionedOffset(@element) -> Array
-   *  
-   *  Returns `element`’s offset relative to its closest positioned ancestor
-   *  (the element that would be returned by [[Element.getOffsetParent]]).
-   *  
-   *  Returns an array in the form of `[leftValue, topValue]`. Also accessible
-   *  as properties: `{ left: leftValue, top: topValue }`.
-  **/
-  positionedOffset: function(element) {
-    var valueT = 0, valueL = 0;
-    do {
-      valueT += element.offsetTop  || 0;
-      valueL += element.offsetLeft || 0;
-      element = element.offsetParent;
-      if (element) {
-        if (element.tagName.toUpperCase() == 'BODY') break;
-        var p = Element.getStyle(element, 'position');
-        if (p !== 'static') break;
-      }
-    } while (element);
-    return Element._returnOffset(valueL, valueT);
-  },
-
-  /**
    *  Element#absolutize(@element) -> Element
    *  
    *  Turns `element` into an absolutely-positioned element _without_ changing
@@ -1252,26 +1228,24 @@ if (Prototype.Browser.Opera) {
 
 else if (Prototype.Browser.IE) {
   
-  $w('positionedOffset viewportOffset').each(function(method) {
-    Element.Methods[method] = Element.Methods[method].wrap(
-      function(proceed, element) {
-        element = $(element);
-        try { element.offsetParent }
-        catch(e) { return Element._returnOffset(0,0) }
-        var position = element.getStyle('position');
-        if (position !== 'static') return proceed(element);
-        // Trigger hasLayout on the offset parent so that IE6 reports
-        // accurate offsetTop and offsetLeft values for position: fixed.
-        var offsetParent = element.getOffsetParent();
-        if (offsetParent && offsetParent.getStyle('position') === 'fixed')
-          offsetParent.setStyle({ zoom: 1 });
-        element.setStyle({ position: 'relative' });
-        var value = proceed(element);
-        element.setStyle({ position: position });
-        return value;
-      }
-    );
-  });
+  Element.Methods.viewportOffset = Element.Methods.viewportOffset.wrap(
+    function(proceed, element) {
+      element = $(element);
+      try { element.offsetParent }
+      catch(e) { return Element._returnOffset(0,0) }
+      var position = element.getStyle('position');
+      if (position !== 'static') return proceed(element);
+      // Trigger hasLayout on the offset parent so that IE6 reports
+      // accurate offsetTop and offsetLeft values for position: fixed.
+      var offsetParent = element.getOffsetParent();
+      if (offsetParent && offsetParent.getStyle('position') === 'fixed')
+        offsetParent.setStyle({ zoom: 1 });
+      element.setStyle({ position: 'relative' });
+      var value = proceed(element);
+      element.setStyle({ position: position });
+      return value;
+    }
+  );
     
   Element.Methods.getStyle = function(element, style) {
     element = $(element);
@@ -1973,7 +1947,7 @@ Element.addMethods({
   **/
   function cumulativeOffset(element) {
     if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !element.parentNode) { // IE
-      return Element._returnOffset(0,0);
+      return Element._returnOffset(0, 0);
     }
     var valueT = 0, valueL = 0;
     do {
@@ -2007,8 +1981,56 @@ Element.addMethods({
     return $(document.body);
   }
   
+  /**
+   *  Element#positionedOffset(@element) -> Array
+   *  
+   *  Returns `element`’s offset relative to its closest positioned ancestor
+   *  (the element that would be returned by [[Element.getOffsetParent]]).
+   *  
+   *  Returns an array in the form of `[leftValue, topValue]`. Also accessible
+   *  as properties: `{ left: leftValue, top: topValue }`.
+  **/
+  function positionedOffset(element) {
+    if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !element.parentNode) { // IE
+      return Element._returnOffset(0, 0)
+    }
+    var valueT = 0, valueL = 0;
+    do {
+      valueT += element.offsetTop  || 0;
+      valueL += element.offsetLeft || 0;
+      element = element.offsetParent;
+      if (element) {
+        if (element.tagName.toUpperCase() == 'BODY') break;
+        var p = Element.getStyle(element, 'position');
+        if (p !== 'static') break;
+      }
+    } while (element);
+    return Element._returnOffset(valueL, valueT);
+  }
+  
+  if (Prototype.Browser.IE) {
+    positionedOffset = positionedOffset.wrap(
+      function(proceed, element) {
+        element = $(element);
+        var position = Element.getStyle(element, 'position');
+        if (position !== 'static') return proceed(element);
+        // Trigger hasLayout on the offset parent so that IE6 reports
+        // accurate offsetTop and offsetLeft values for position: fixed.
+        var offsetParent = Element.getOffsetParent(element);
+        if (offsetParent && Element.getStyle(offsetParent, 'position') === 'fixed') {
+          offsetParent.style.zoom = 1;
+        }
+        element.style.position = 'relative';
+        var value = proceed(element);
+        element.style.position = position;
+        return value;
+      }
+    );
+  }
+  
   Element.addMethods({
     cumulativeOffset:   cumulativeOffset,
+    positionedOffset:   positionedOffset,
     getOffsetParent:    getOffsetParent
   })
 })();

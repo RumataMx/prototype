@@ -1,3 +1,5 @@
+* Eliminate sniffing from `getStyle`. `getOpacity` testing and branching is now encapsulated in `getOpacity` rather than in `getStyle`. Performance improvements.
+
 * Perform same changes to `viewportOffset` (unified fork, perf. improvements) as the ones in the previous commit. (kangax)
 
 * `positionedOffset` forking is now done in one place. Use value of test for orphaned elements instead of try catch. Do not use `setStyle` in `offsetParent` when plain style assignment suffices. (kangax)

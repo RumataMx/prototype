@@ -624,12 +624,26 @@ Element.Methods = {
    *  Returns the value of `element`'s attribute with the given name.
   **/
   readAttribute: (function(){
+    
+    // Opera 9.25 returns `null` instead of "" for getAttribute('title')
+    // when `title` attribute is empty
+    var GET_ATTRIBUTE_TITLE_RETURNS_NULL = (function(){
+      var el = document.createElement('div');
+      el.setAttribute('title', '');
+      var isBuggy = (el.getAttribute('title') === null);
+      el = null;
+      return isBuggy;
+    })();
+    
     function readAttribute(element, name) {
       element = $(element);
+      
       // IE throws error when invoking getAttribute("type", 2) on an iframe
-      if (name === 'type' && 
-          element.tagName.toUpperCase() == 'IFRAME') {
+      if (name === 'type' && element.tagName.toUpperCase() == 'IFRAME') {
         return element.getAttribute('type');
+      }
+      if (name === 'title' && GET_ATTRIBUTE_TITLE_RETURNS_NULL) {
+        return element.title;
       }
       if (Prototype.Browser.IE) {
         var t = Element._attributeTranslations.read;
@@ -1315,17 +1329,8 @@ Element._attributeTranslations = {
   }
 };
 
-if (Prototype.Browser.Opera) { 
-  Element.Methods.readAttribute = Element.Methods.readAttribute.wrap(
-    function(proceed, element, attribute) {
-      if (attribute === 'title') return element.title;
-      return proceed(element, attribute);
-    }
-  );  
-}
+if (Prototype.Browser.IE) {
 
-else if (Prototype.Browser.IE) {
-  
   Element._attributeTranslations = (function(){
     
     var classProp = 'className';

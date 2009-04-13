@@ -269,19 +269,50 @@ Element.Methods = {
    *  Keep in mind that this method returns the element that has just been
    *  removed — not the element that took its place.
   **/
-  replace: function(element, content) {
-    element = $(element);
-    if (content && content.toElement) content = content.toElement();
-    else if (!Object.isElement(content)) {
-      content = Object.toHTML(content);
-      var range = element.ownerDocument.createRange();
-      range.selectNode(element);
-      content.evalScripts.bind(content).defer();
-      content = range.createContextualFragment(content.stripScripts());
+  replace: (function(){
+    function replace(element, content) {
+      element = $(element);
+      if (content && content.toElement) content = content.toElement();
+      else if (!Object.isElement(content)) {
+        content = Object.toHTML(content);
+        var range = element.ownerDocument.createRange();
+        range.selectNode(element);
+        content.evalScripts.bind(content).defer();
+        content = range.createContextualFragment(content.stripScripts());
+      }
+      element.parentNode.replaceChild(content, element);
+      return element;
     }
-    element.parentNode.replaceChild(content, element);
-    return element;
-  },
+    if ('outerHTML' in document.documentElement) {
+      replace = function(element, content) {
+        element = $(element);
+
+        if (content && content.toElement) content = content.toElement();
+        if (Object.isElement(content)) {
+          element.parentNode.replaceChild(content, element);
+          return element;
+        }
+
+        content = Object.toHTML(content);
+        var parent = element.parentNode, tagName = parent.tagName.toUpperCase();
+
+        if (Element._insertionTranslations.tags[tagName]) {
+          var nextSibling = element.next();
+          var fragments = Element._getContentFromAnonymousElement(tagName, content.stripScripts());
+          parent.removeChild(element);
+          if (nextSibling)
+            fragments.each(function(node) { parent.insertBefore(node, nextSibling) });
+          else 
+            fragments.each(function(node) { parent.appendChild(node) });
+        }
+        else element.outerHTML = content.stripScripts();
+
+        content.evalScripts.bind(content).defer();
+        return element;
+      };
+    }
+    return replace;
+  })(),
   
   /**
    *  Element#insert(@element, content) -> Element
@@ -1460,35 +1491,6 @@ else if (Prototype.Browser.IE) {
       }    
     })();
   } 
-}
-
-if ('outerHTML' in document.documentElement) {
-  Element.Methods.replace = function(element, content) {
-    element = $(element);
-    
-    if (content && content.toElement) content = content.toElement();
-    if (Object.isElement(content)) {
-      element.parentNode.replaceChild(content, element);
-      return element;
-    }
-
-    content = Object.toHTML(content);
-    var parent = element.parentNode, tagName = parent.tagName.toUpperCase();
-    
-    if (Element._insertionTranslations.tags[tagName]) {
-      var nextSibling = element.next();
-      var fragments = Element._getContentFromAnonymousElement(tagName, content.stripScripts());
-      parent.removeChild(element);
-      if (nextSibling)
-        fragments.each(function(node) { parent.insertBefore(node, nextSibling) });
-      else 
-        fragments.each(function(node) { parent.appendChild(node) });
-    }
-    else element.outerHTML = content.stripScripts();
-    
-    content.evalScripts.bind(content).defer();
-    return element;
-  };
 }
 
 Element._returnOffset = function(l, t) {

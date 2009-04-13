@@ -782,26 +782,160 @@ Element.Methods = {
    *  specified in either its CSS form (`font-size`) or its camelized form
    *  (`fontSize`).
   **/
-  getStyle: function(element, style) {
-    element = $(element);
-    style = style == 'float' ? 'cssFloat' : style.camelize();
-    var value = element.style[style];
-    if (!value || value == 'auto') {
-      var css = document.defaultView.getComputedStyle(element, null);
-      value = css ? css[style] : null;
+  getStyle: (function(){
+    var docEl = document.documentElement,
+        view = document.defaultView;
+
+    var FLOAT_STYLE = 'styleFloat' in docEl.style ? 'styleFloat' : 'cssFloat';
+    
+    var HAS_COMPUTED_STYLE = view && (typeof view.getComputedStyle !== 'undefined');
+    
+    var getComputed = HAS_COMPUTED_STYLE
+      ? function(element, style) { return view.getComputedStyle(element, null)[style] }
+      // `currentStyle` is `null` on orphaned elements in IE
+      : function(element, style) { return element.currentStyle ? element.currentStyle[style] : '' }
+    
+    // IE
+    var COMPUTED_WIDTH_HEIGHT_VALUES_ARE_ALWAYS_AUTO = getComputed(docEl, 'width') === 'auto';
+      
+    // Opera
+    var COMPUTED_VALUE_FOR_HIDDEN_ELEMENTS_IS_0_PX = (function(){
+      var el = document.createElement('div');
+      el.style.display = 'none';
+      docEl.appendChild(el);
+      var isBuggy = getComputed(el, 'width') === '0px';
+      docEl.removeChild(el);
+      el = null;
+      return isBuggy;
+    })();
+    
+    // Opera
+    // lazy-evaluated at runtime (only when `document.body` is present), then redefined
+    function COMPUTED_VALUE_RETURNS_BORDER_BOX() {
+      if (document.body) {
+        var el = document.createElement('div');
+        el.style.width = '10px';
+        el.style.borderLeft = '10px solid transparent';
+        document.body.appendChild(el);
+        var isBuggy = getComputed(el, 'width') === '20px';
+        document.body.removeChild(el);
+        el = null;
+        return (COMPUTED_VALUE_RETURNS_BORDER_BOX = function(){
+          return isBuggy;
+        })();
+      }
+      return null;
     }
-    if (style == 'opacity') return value ? parseFloat(value) : 1.0;
-    return value == 'auto' ? null : value;
-  },
+    
+    var heightProperties = ['border-top-width', 'padding-top',
+     'padding-bottom', 'border-bottom-width'];
+     
+    var widthProperties =  ['border-left-width', 'padding-left',
+      'padding-right', 'border-right-width'];
+
+    function getStyle(element, style) {
+      if (!(element = $(element))) return;
+
+      // normalize "float" style
+      style = (style === 'float' || style === 'cssFloat')
+        ? FLOAT_STYLE
+        : style.camelize();
+        
+      switch(style) {
+        case 'opacity':          
+          return Element.getOpacity(element);
+          break;
+      
+        case 'width':
+        case 'height': 
+          // Opera returns '0px' for "hidden" (i.e. non-rendered) elements; 
+          // instead, we coerce it to null
+          if (COMPUTED_VALUE_FOR_HIDDEN_ELEMENTS_IS_0_PX && !Element.visible(element)) {
+            return null;
+          }
+          // Opera returns the border-box dimensions rather than the content-box
+          // dimensions, so we subtract padding and borders from the value
+          if (COMPUTED_VALUE_RETURNS_BORDER_BOX()) {
+            var dim = parseInt(getComputed(element, style), 10);
+            if (dim !== element['offset' + style.capitalize()])
+              return dim + 'px';
+            var properties = (style === 'height') 
+              ? heightProperties
+              : widthProperties;
+            var total = properties.inject(dim, function(memo, property) {
+              var val = getComputed(element, property.camelize());
+              return val === null ? memo : memo - parseInt(val, 10);
+            });
+            return total + 'px';
+          }
+          break;
+      }
+
+      var value = element.style[style];
+
+      // value is not in "style" or is "auto", get computed one
+      if (!value || value === 'auto') {
+        value = getComputed(element, style);
+      }
+
+      // value is "auto"
+      if (value === 'auto') { 
+        if (COMPUTED_WIDTH_HEIGHT_VALUES_ARE_ALWAYS_AUTO) {
+          if (style === 'width' || style === 'height') {
+            if (Element.getStyle(element, 'display') !== 'none') {
+              return element['offset' + style.capitalize()] + 'px';
+            }
+            // return `null` for hidden elements
+            return null;
+          }
+        }
+        // return `null` for "auto" values which can not be computed
+        return null;
+      }
+      return value;
+    }
+    return getStyle;
+  })(),
   
   /**
    *  Element#getOpacity(@element) -> String | null
    *  
    *  Returns the opacity of the element.
   **/
-  getOpacity: function(element) {
-    return $(element).getStyle('opacity');
-  },
+  getOpacity: (function(){
+    
+    var style = document.documentElement.style;
+    var view = document.defaultView;
+    
+    var HAS_OPACITY = 'opacity' in style;
+    var HAS_FILTER = typeof style.filter === 'string';
+    var HAS_COMPUTED_STYLE = view && typeof view.getComputedStyle !== 'undefined';
+    
+    var RE_ALPHA = /alpha\(opacity=(.*)\)/;
+    
+    function getComputedStyle(element) {
+      return view.getComputedStyle(element, '');
+    }
+    
+    if (HAS_OPACITY && HAS_COMPUTED_STYLE) {
+      return function(element) {
+        if (element = $(element)) {
+          var value = element.style.opacity || getComputedStyle(element).opacity;
+          return value ? parseFloat(value) : 1.0;
+        }
+      }
+    }
+    else if (HAS_FILTER) {
+      return function(element) {
+        var filterStyle = Element.getStyle(element, 'filter') || '';
+        var match = filterStyle.match(RE_ALPHA);
+        if (match && match[1]) {
+          return parseFloat(match[1]) / 100;
+        }
+        return 1.0;
+      }
+    }
+  })(),
   
   /**
    *  Element#setStyle(@element, styles) -> Element
@@ -1151,40 +1285,6 @@ Element._attributeTranslations = {
 };
 
 if (Prototype.Browser.Opera) { 
-  Element.Methods.getStyle = Element.Methods.getStyle.wrap( 
-    function(proceed, element, style) {
-      switch (style) {
-        case 'left': case 'top': case 'right': case 'bottom':
-          if (proceed(element, 'position') === 'static') return null;
-        case 'height': case 'width':
-          // returns '0px' for hidden elements; we want it to return null
-          if (!Element.visible(element)) return null;
-          
-          // returns the border-box dimensions rather than the content-box
-          // dimensions, so we subtract padding and borders from the value
-          var dim = parseInt(proceed(element, style), 10);
-          
-          if (dim !== element['offset' + style.capitalize()])
-            return dim + 'px';
-            
-          var properties;
-          if (style === 'height') {
-            properties = ['border-top-width', 'padding-top',
-             'padding-bottom', 'border-bottom-width'];
-          }
-          else {
-            properties = ['border-left-width', 'padding-left',
-             'padding-right', 'border-right-width'];            
-          }             
-          return properties.inject(dim, function(memo, property) {
-            var val = proceed(element, property);
-            return val === null ? memo : memo - parseInt(val, 10);              
-          }) + 'px';          
-        default: return proceed(element, style);
-      }
-    }
-  );
-  
   Element.Methods.readAttribute = Element.Methods.readAttribute.wrap(
     function(proceed, element, attribute) {
       if (attribute === 'title') return element.title;
@@ -1194,27 +1294,7 @@ if (Prototype.Browser.Opera) {
 }
 
 else if (Prototype.Browser.IE) {
-    
-  Element.Methods.getStyle = function(element, style) {
-    element = $(element);
-    style = (style == 'float' || style == 'cssFloat') ? 'styleFloat' : style.camelize();
-    var value = element.style[style];
-    if (!value && element.currentStyle) value = element.currentStyle[style];
-
-    if (style == 'opacity') {
-      if (value = (element.getStyle('filter') || '').match(/alpha\(opacity=(.*)\)/))
-        if (value[1]) return parseFloat(value[1]) / 100;
-      return 1.0;
-    }
-
-    if (value == 'auto') {
-      if ((style == 'width' || style == 'height') && (element.getStyle('display') != 'none'))
-        return element['offset' + style.capitalize()] + 'px';
-      return null;
-    }
-    return value;
-  };
-
+  
   Element._attributeTranslations = (function(){
     
     var classProp = 'className';

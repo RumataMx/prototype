@@ -1459,27 +1459,7 @@ else if (Prototype.Browser.IE) {
           Element.select(element, expression)[index || 0];
       }    
     })();
-  }
-  
-}
-
-else if (Prototype.Browser.WebKit) {
-  // Safari returns margins on body which is incorrect if the child is absolutely
-  // positioned.  For performance reasons, redefine Element#cumulativeOffset for
-  // KHTML/WebKit only.
-  Element.Methods.cumulativeOffset = function(element) {
-    var valueT = 0, valueL = 0;
-    do {
-      valueT += element.offsetTop  || 0;
-      valueL += element.offsetLeft || 0;
-      if (element.offsetParent == document.body)
-        if (Element.getStyle(element, 'position') == 'absolute') break;
-        
-      element = element.offsetParent;
-    } while (element);
-    
-    return Element._returnOffset(valueL, valueT);
-  };
+  } 
 }
 
 if ('outerHTML' in document.documentElement) {
@@ -1984,6 +1964,24 @@ Element.addMethods({
       element = element.offsetParent;
     } while (element);
     return Element._returnOffset(valueL, valueT);
+  }
+  
+  if (Prototype.Browser.WebKit) {
+    // Safari returns margins on body which is incorrect if the child is absolutely
+    // positioned.  For performance reasons, redefine Element#cumulativeOffset for
+    // KHTML/WebKit only.
+    cumulativeOffset = function(element) {
+      var valueT = 0, valueL = 0;
+      do {
+        valueT += element.offsetTop  || 0;
+        valueL += element.offsetLeft || 0;
+        if (element.offsetParent == document.body)
+          if (Element.getStyle(element, 'position') == 'absolute') break;
+        element = element.offsetParent;
+      } while (element);
+
+      return Element._returnOffset(valueL, valueT);
+    }
   }
   
   /**

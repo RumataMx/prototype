@@ -72,21 +72,19 @@ if (!Node.ELEMENT_NODE) {
 **/
 (function(global) {
   
-  // setAttribute is broken in IE (particularly when setting name attribute)
+  // Test for IE's extended syntax
   // see: http://msdn.microsoft.com/en-us/library/ms536389.aspx
-  var SETATTRIBUTE_IGNORES_NAME = (function(){
-    var elForm = document.createElement("form");
-    var elInput = document.createElement("input");
-    var root = document.documentElement;
-    elInput.setAttribute("name", "test");
-    elForm.appendChild(elInput);
-    root.appendChild(elForm);
-    var isBuggy = elForm.elements 
-      ? (typeof elForm.elements.test == "undefined") 
-      : null;
-    root.removeChild(elForm);
-    elForm = elInput = null;
-    return isBuggy;
+  var CREATE_ELEMENT_EXTENDED_SYNTAX = (function(){
+    var isSupported = false;
+    try {
+      var el = document.createElement('<a name="x">x</a>');
+      isSupported = (el.name === 'x');
+      el = null;
+    }
+    catch(e) {
+      isSupported = false;;
+    }
+    return isSupported;
   })();
   
   var element = global.Element;
@@ -94,7 +92,7 @@ if (!Node.ELEMENT_NODE) {
     attributes = attributes || { };
     tagName = tagName.toLowerCase();
     var cache = Element.cache;
-    if (SETATTRIBUTE_IGNORES_NAME && attributes.name) {
+    if (CREATE_ELEMENT_EXTENDED_SYNTAX && attributes.name) {
       tagName = '<' + tagName + ' name="' + attributes.name + '">';
       delete attributes.name;
       return Element.writeAttribute(document.createElement(tagName), attributes);
@@ -837,34 +835,43 @@ Element.Methods = {
     var HAS_COMPUTED_STYLE = view && (typeof view.getComputedStyle !== 'undefined');
     
     var getComputed = HAS_COMPUTED_STYLE
-      ? function(element, style) { return view.getComputedStyle(element, null)[style] }
+      ? function(element, style) { var c = view.getComputedStyle(element, ''); return c ? c[style] : null; }
       // `currentStyle` is `null` on orphaned elements in IE
       : function(element, style) { return element.currentStyle ? element.currentStyle[style] : '' }
     
     // IE
     var COMPUTED_WIDTH_HEIGHT_VALUES_ARE_ALWAYS_AUTO = getComputed(docEl, 'width') === 'auto';
-      
-    // Opera
-    var COMPUTED_VALUE_FOR_HIDDEN_ELEMENTS_IS_0_PX = (function(){
-      var el = document.createElement('div');
-      el.style.display = 'none';
-      docEl.appendChild(el);
-      var isBuggy = getComputed(el, 'width') === '0px';
-      docEl.removeChild(el);
-      el = null;
-      return isBuggy;
-    })();
+    
+    // The following tests are lazy-evaluated at runtime 
+    // (only when `document.body` is present), then redefined 
     
     // Opera
-    // lazy-evaluated at runtime (only when `document.body` is present), then redefined
+    function COMPUTED_VALUE_FOR_HIDDEN_ELEMENTS_IS_0_PX() {
+      var body = document.body;
+      if (body) {
+        var el = document.createElement('div');
+        el.style.display = 'none';
+        body.insertBefore(el, body.firstChild);
+        var isBuggy = getComputed(el, 'width') === '0px';
+        body.removeChild(el);
+        el = null;
+        return (COMPUTED_VALUE_FOR_HIDDEN_ELEMENTS_IS_0_PX = function(){
+          return isBuggy;
+        })();
+      }
+      return null;
+    }
+    
+    // Opera
     function COMPUTED_VALUE_RETURNS_BORDER_BOX() {
-      if (document.body) {
+      var body = document.body;
+      if (body) {
         var el = document.createElement('div');
         el.style.width = '10px';
         el.style.borderLeft = '10px solid transparent';
-        document.body.appendChild(el);
+        body.insertBefore(el, body.firstChild);
         var isBuggy = getComputed(el, 'width') === '20px';
-        document.body.removeChild(el);
+        body.removeChild(el);
         el = null;
         return (COMPUTED_VALUE_RETURNS_BORDER_BOX = function(){
           return isBuggy;
@@ -896,7 +903,7 @@ Element.Methods = {
         case 'height': 
           // Opera returns '0px' for "hidden" (i.e. non-rendered) elements; 
           // instead, we coerce it to null
-          if (COMPUTED_VALUE_FOR_HIDDEN_ELEMENTS_IS_0_PX && !Element.visible(element)) {
+          if (COMPUTED_VALUE_FOR_HIDDEN_ELEMENTS_IS_0_PX() && !Element.visible(element)) {
             return null;
           }
           // Opera returns the border-box dimensions rather than the content-box
@@ -966,7 +973,11 @@ Element.Methods = {
     if (HAS_OPACITY && HAS_COMPUTED_STYLE) {
       return function(element) {
         if (element = $(element)) {
-          var value = element.style.opacity || getComputedStyle(element).opacity;
+          var value = element.style.opacity;
+          if (!value) {
+            var c = getComputedStyle(element);
+            value = c ? c.opacity : null;
+          }
           return value ? parseFloat(value) : 1.0;
         }
       }

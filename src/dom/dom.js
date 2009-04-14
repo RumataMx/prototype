@@ -1963,6 +1963,40 @@ Element.addMethods({
     return result;
   })();
   
+  function BUGGY_OFFSET_VALUES_FOR_STATIC_ELEMENTS_INSIDE_POSITIONED_ONES() {
+    var body = document.body, 
+        isBuggy = null;
+    if (body) {
+      var id = 'x' + (Math.random() + '').slice(2);
+      var clearance = "margin:0;padding:0;border:0;visibility:hidden;";
+      var payload = '<div style="position:absolute;top:10px;' + clearance + '">'+
+        '<div style="position:relative;top:10px;' + clearance + '">'+
+          '<div style="height:10px;font-size:1px;' + clearance + '"><\/div>'+
+          '<div id="'+id+'">x<\/div>'+
+        '<\/div>'+
+      '<\/div>';
+      var wrapper = document.createElement('div');
+      wrapper.innerHTML = payload;
+      body.insertBefore(wrapper, body.firstChild);
+      var el = document.getElementById(id);
+      if (el.offsetTop !== 10) {
+        // buggy, set position to relative and check if it fixes it
+        el.style.position = 'relative';
+        if (el.offsetTop === 10) {
+          isBuggy = true;
+        }
+      }
+      else {
+        isBuggy = false;
+      }
+      body.removeChild(wrapper);
+      wrapper = null;
+    }
+    return (BUGGY_OFFSET_VALUES_FOR_STATIC_ELEMENTS_INSIDE_POSITIONED_ONES = function(){
+      return isBuggy;
+    })();
+  };
+  
   /**
    *  Element#cumulativeOffset(@element) -> Array
    *  
@@ -2039,6 +2073,13 @@ Element.addMethods({
     if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !element.parentNode) { // IE
       return Element._returnOffset(0, 0)
     }
+    if (BUGGY_OFFSET_VALUES_FOR_STATIC_ELEMENTS_INSIDE_POSITIONED_ONES()) {
+      return fixedPositionOffset(element);
+    }
+    return _calculatePositionedOffset(element);
+  }
+  
+  function _calculatePositionedOffset(element) {
     var valueT = 0, valueL = 0;
     do {
       valueT += element.offsetTop  || 0;
@@ -2049,28 +2090,26 @@ Element.addMethods({
         var p = Element.getStyle(element, 'position');
         if (p !== 'static') break;
       }
-    } while (element);
+    } 
+    while (element);
     return Element._returnOffset(valueL, valueT);
   }
   
-  if (Prototype.Browser.IE) {
-    positionedOffset = positionedOffset.wrap(
-      function(proceed, element) {
-        element = $(element);
-        var position = Element.getStyle(element, 'position');
-        if (position !== 'static') return proceed(element);
-        // Trigger hasLayout on the offset parent so that IE6 reports
-        // accurate offsetTop and offsetLeft values for position: fixed.
-        var offsetParent = Element.getOffsetParent(element);
-        if (offsetParent && Element.getStyle(offsetParent, 'position') === 'fixed') {
-          offsetParent.style.zoom = 1;
-        }
-        element.style.position = 'relative';
-        var value = proceed(element);
-        element.style.position = position;
-        return value;
-      }
-    );
+  function fixedPositionOffset(element) {
+    var position = Element.getStyle(element, 'position');
+    if (position !== 'static') {
+      return _calculatePositionedOffset(element);
+    }
+    // Trigger hasLayout on the offset parent so that IE6 reports
+    // accurate offsetTop and offsetLeft values for position: fixed.
+    var offsetParent = Element.getOffsetParent(element);
+    if (offsetParent && Element.getStyle(offsetParent, 'position') === 'fixed') {
+      offsetParent.style.zoom = 1;
+    }
+    element.style.position = 'relative';
+    var value = _calculatePositionedOffset(element);
+    element.style.position = position;
+    return value;
   }
   
   /**

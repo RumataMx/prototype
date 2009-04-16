@@ -443,12 +443,42 @@ Object.extend(Selector, {
   
   handlers: {
     // UTILITY FUNCTIONS
+    
     // joins two collections
-    concat: function(a, b) {
-      for (var i = 0, node; node = b[i]; i++)
-        a.push(node);
-      return a;
-    },
+    concat: (function(){
+      
+      // IE returns comment nodes on getElementsByTagName("*").
+      // Filter them out.
+      var GEBTN_INCLUDES_COMMENT_NODES = (function(){
+        var el = document.createElement("div"),
+            isBuggy = false;
+        el.innerHTML = "<span>a</span><!--b-->";
+        var lastNode = el.getElementsByTagName("*")[1];
+        isBuggy = !!(lastNode && lastNode.nodeType === 8);
+        el = lastNode = null;
+        return isBuggy;
+      })();
+      
+      function concat(a, b) {
+        for (var i = 0, node; node = b[i]; i++) {
+          a.push(node);
+        }
+        return a;
+      }
+      
+      if (GEBTN_INCLUDES_COMMENT_NODES) {
+        concat = function(a, b) {
+          for (var i = 0, node; node = b[i]; i++) {
+            if (node.tagName !== "!") {
+              a.push(node);
+            }
+          }
+          return a;
+        }
+      }
+      
+      return concat;
+    })(),
     
     // marks an array of nodes for counting
     mark: function(nodes) {
@@ -865,18 +895,6 @@ Object.extend(Selector, {
     return (l > 1) ? h.unique(results) : results;
   }
 });
-
-if (Prototype.Browser.IE) {
-  Object.extend(Selector.handlers, {
-    // IE returns comment nodes on getElementsByTagName("*").
-    // Filter them out.
-    concat: function(a, b) {
-      for (var i = 0, node; node = b[i]; i++)
-        if (node.tagName !== "!") a.push(node);
-      return a;
-    }
-  });  
-}
 
 /** related to: Selector
  *  $$(expression...) -> [Element...]

@@ -1,3 +1,5 @@
+* Add IS_XPATH_POSITION_FUNCTION_BUGGY test instead of a Prototype.Browser.WebKit sniff. (kangax)
+
 * Use proper test when checking for buggy implementation of offsetTop/offsetLeft on static elements positioned inside non-static ones (IE<8). Coincidentally, this makes IE8 skip unnecessary workaround, gaining in perf. (kangax)
 
 * Use "CREATE_ELEMENT_EXTENDED_SYNTAX" test instead of "SETATTRIBUTE_IGNORES_NAME"; This allows to avoid `document.documentElement` insertion. Make sure `getComputedStyle` works in Safari 2.x. "COMPUTED_VALUE_FOR_HIDDEN_ELEMENTS_IS_0_PX" now avoids `document.documentElement` insertion, by performing test at runtime and redefining itself. When inserting into `document.body`, use `insertBefore` to prevent IE's potential "operation aborted" error. (Garrett Smith, kangax)

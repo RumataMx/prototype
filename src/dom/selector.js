@@ -53,15 +53,36 @@ var Selector = Class.create({
       return isBuggy;
     })();
     
+    // Some versions of WebKit have buggy XPath position() function
+    // We test it here since "*-of-type" rely on it
+    var IS_XPATH_POSITION_FUNCTION_BUGGY = (function(){
+      var isBuggy = false;
+      if (document.evaluate && window.XPathResult) {
+        var el = document.createElement('div');
+        el.innerHTML = '<p id="p1">a</p><p id="p2">b</p>';
+        
+        var xpath = "//*[position() = 2]";
+        
+        var result = document.evaluate(xpath, el, null, 
+          XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+          
+        var isBuggy = (result.snapshotLength !== 1);
+        el = null; 
+      }
+      return isBuggy;
+    })();
+    
     return function() {      
       if (!Prototype.BrowserFeatures.XPath) return false;
 
       var e = this.expression;
 
-      // Safari 3 chokes on :*-of-type and :empty
-      if (Prototype.Browser.WebKit && 
-       (e.include("-of-type") || e.include(":empty")))
+      if (IS_XPATH_POSITION_FUNCTION_BUGGY && e.include("-of-type") || 
+        // TODO: need to reproduce this and replace sniff with proper test
+        // so far, Safari 2.0.4, 3.0.4, 3.2 and 4beta - all pass :empty tests even without this guard
+        (Prototype.Browser.WebKit && e.include(':empty'))) {
         return false;
+      }
 
       // XPath can't do namespaced attributes, nor can it read
       // the "checked" property from DOM nodes

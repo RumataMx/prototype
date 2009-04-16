@@ -1,3 +1,5 @@
+* Do not browser sniff when forking `unmark` function in selector suite. Instead use a proper test - PROPERTIES_ATTRIBUTES_MAP. (kangax)
+
 * Add IS_XPATH_POSITION_FUNCTION_BUGGY test instead of a Prototype.Browser.WebKit sniff. (kangax)
 
 * Use proper test when checking for buggy implementation of offsetTop/offsetLeft on static elements positioned inside non-static ones (IE<8). Coincidentally, this makes IE8 skip unnecessary workaround, gaining in perf. (kangax)

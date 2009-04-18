@@ -1,3 +1,5 @@
+* Make sure $A works with primitive values. (mr_justin, kangax)
+
 * Do not browser sniff when forking `concat` function in selector suite. Instead use a proper test - GEBTN_RETURNS_COMMENT_NODES. (kangax)
 
 * Do not browser sniff when forking `unmark` function in selector suite. Instead use a proper test - PROPERTIES_ATTRIBUTES_MAP. (kangax)

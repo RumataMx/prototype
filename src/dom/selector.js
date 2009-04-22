@@ -428,8 +428,8 @@ Object.extend(Selector, {
       
       // IE returns comment nodes on getElementsByTagName("*").
       // Filter them out.
-      var GEBTN_INCLUDES_COMMENT_NODES = (function(){
-        var el = document.createElement("div"),
+      var GEBTN_RETURNS_COMMENT_NODES = (function(){
+        var el = document.createElement("div"), 
             isBuggy = false;
         el.innerHTML = "<span>a</span><!--b-->";
         var lastNode = el.getElementsByTagName("*")[1];
@@ -439,19 +439,15 @@ Object.extend(Selector, {
       })();
       
       function concat(a, b) {
-        for (var i = 0, node; node = b[i]; i++) {
+        for (var i = 0, node; node = b[i]; i++)
           a.push(node);
-        }
         return a;
       }
       
-      if (GEBTN_INCLUDES_COMMENT_NODES) {
+      if (GEBTN_RETURNS_COMMENT_NODES) {
         concat = function(a, b) {
-          for (var i = 0, node; node = b[i]; i++) {
-            if (node.tagName !== "!") {
-              a.push(node);
-            }
-          }
+          for (var i = 0, node; node = b[i]; i++)
+            if (node.tagName !== "!") a.push(node);
           return a;
         }
       }
@@ -480,7 +476,7 @@ Object.extend(Selector, {
         isBuggy = (el.getAttribute(propName) === value);
         el = null;
         return isBuggy;
-      });
+      })();
       
       return PROPERTIES_ATTRIBUTES_MAP ?
         function(nodes) {

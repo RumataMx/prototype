@@ -652,8 +652,12 @@ Element.Methods = {
           return (!element.attributes || !element.attributes[name]) ? null : 
            element.attributes[name].value;
         }
-      }      
-      return element.getAttribute(name);
+      }
+      var value = element.getAttribute(name);
+      if (typeof value != 'string' && value === element[name]) {
+        return null;
+      }
+      return value;
     }
     return readAttribute;
   })(),
@@ -669,18 +673,24 @@ Element.Methods = {
     element = $(element);
     var attributes = { }, t = Element._attributeTranslations.write;
     
-    if (typeof name == 'object') attributes = name;
-    else attributes[name] = Object.isUndefined(value) ? true : value;
+    if (typeof name == 'object') {
+      attributes = name;
+    }
+    else {
+      attributes[name] = Object.isUndefined(value) ? true : value;
+    }
     
     for (var attr in attributes) {
       name = t.names[attr] || attr;
       value = attributes[attr];
-      if (t.values[attr]) name = t.values[attr](element, value);
+      if (t.values[attr]) {
+        name = t.values[attr](element, value);
+      }
       if (value === false || value === null)
         element.removeAttribute(name);
       else if (value === true)
         element.setAttribute(name, name);
-      else element.setAttribute(name, value);
+      else element.setAttribute(name, String(value));
     }
     return element;
   },

@@ -1,3 +1,5 @@
+* Element#readAttribute should always return string values or `null`. Fix IE's broken attributes model by converting to string any non-string value returned by `getAttribute` which is identical to the same-named property. (Jason B, kangax)
+
 * Make sure $A works with primitive values. (mr_justin, kangax)
 
 * Do not browser sniff when forking `concat` function in selector suite. Instead use a proper test - GEBTN_RETURNS_COMMENT_NODES. (kangax)

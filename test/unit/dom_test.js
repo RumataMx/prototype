@@ -973,6 +973,13 @@ new Test.Unit.Runner({
     var table = $('write_attribute_table');
     this.assertEqual('4', table.readAttribute('cellspacing'));
     this.assertEqual('6', table.readAttribute('cellpadding'));
+    
+    var el = new Element('div');
+    el.foobar = [1,2,3];
+    
+    this.assertNull(el.readAttribute('show'));
+    this.assertNull(el.readAttribute('foobar'));
+    this.assertNull(el.readAttribute('_extendedByPrototype'));
   },
   
   testElementWriteAttribute: function() {

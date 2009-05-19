@@ -641,6 +641,11 @@ new Test.Unit.Runner({
   },
   
   testElementExtend: function() {
+    function testTag(tagName) {
+      var element = document.createElement(tagName);
+      this.assertEqual(element, Element.extend(element));
+      this.assertRespondsTo('show', element);
+    }
     var element = $('element_extend_test');
     this.assertRespondsTo('show', element);
     
@@ -654,11 +659,10 @@ new Test.Unit.Runner({
       'script select small span strong style sub sup '+
       'table tbody td textarea tfoot th thead tr tt ul var');
       
-    XHTML_TAGS.each(function(tag) {
-      var element = document.createElement(tag);
-      this.assertEqual(element, Element.extend(element));
-      this.assertRespondsTo('show', element);
-    }, this);
+    XHTML_TAGS.each(testTag, this);
+    
+    // EMBED is deprecated, but is widely used
+    testTag.call(this, 'embed');
     
     [null,'','a','aa'].each(function(content) {
       var textnode = document.createTextNode(content);

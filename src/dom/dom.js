@@ -1626,25 +1626,21 @@ Element.extend = (function() {
   }
   
   var HTMLOBJECTELEMENT_PROTOTYPE_BUGGY = checkDeficiency('object');
-  var HTMLAPPLETELEMENT_PROTOTYPE_BUGGY = checkDeficiency('applet');
   
   if (Prototype.BrowserFeatures.SpecificElementExtensions) {
-    // IE8 has a bug with `HTMLObjectElement` and `HTMLAppletElement` objects 
+    // IE8 has a bug with `HTMLObjectElement`, `HTMLAppletElement` and `HTMLEmbedElement` objects
+    // (apparently implementing them as ActiveX/COM objects)
     // not being able to "inherit" from `Element.prototype` 
-    // or a specific prototype - `HTMLObjectElement.prototype`, `HTMLAppletElement.prototype`
-    if (HTMLOBJECTELEMENT_PROTOTYPE_BUGGY && 
-        HTMLAPPLETELEMENT_PROTOTYPE_BUGGY) {
+    // or a more specific - `HTMLObjectElement.prototype`, `HTMLAppletElement.prototype`, `HTMLEmbedElement.prototype`
+    // We only test for defficient OBJECT and assume that both - EMBED and APPLET are affected as well,
+    // since creating an APPLET element in IE installations without Java triggers warning popup, which we try to avoid
+    if (HTMLOBJECTELEMENT_PROTOTYPE_BUGGY) {
       return function(element) {
-        if (element && element.tagName) {
-          var tagName = element.tagName.toUpperCase();
-          if (tagName === 'OBJECT' || tagName === 'APPLET') {
+        var t;
+        if (element && (t = element.tagName)) {
+          if (/^(?:object|applet|embed)$/i.test(t)) {
             extendElementWith(element, Element.Methods);
-            if (tagName === 'OBJECT') {
-              extendElementWith(element, Element.Methods.ByTag.OBJECT)
-            }
-            else if (tagName === 'APPLET') {
-              extendElementWith(element, Element.Methods.ByTag.APPLET)
-            }
+            extendElementWith(element, Element.Methods.ByTag[t.toUpperCase()]);
           }
         }
         return element;

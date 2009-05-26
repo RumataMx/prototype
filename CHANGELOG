@@ -1,3 +1,5 @@
+* Do not use relatively slow `new RegExp` in `String#extractScripts`. (MIYAMUKO Katsuyuki, kangax)
+
 * Element#readAttribute should always return string values or `null`. Fix IE's broken attributes model by converting to string any non-string value returned by `getAttribute` which is identical to the same-named property. (Jason B, kangax)
 
 * Make sure $A works with primitive values. (mr_justin, kangax)

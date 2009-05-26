@@ -224,6 +224,12 @@ new Test.Unit.Runner({
       ('foo <script>boo();<'+'/script><script type="text/javascript">boo();\nmoo();<'+'/script>bar').extractScripts());
     this.assertEnumEqual(['boo();','boo();\nmoo();'], 
       ('foo <script>boo();<'+'/script>blub\nblub<script type="text/javascript">boo();\nmoo();<'+'/script>bar').extractScripts());
+
+    var str = 'foo <script>boo();<'+'/script>blub\nblub<script type="text/javascript">boo();\nmoo();<'+'/script>bar';
+    this.assertEnumEqual(['boo();','boo();\nmoo();'], str.extractScripts());
+    this.assertEnumEqual(['boo();','boo();\nmoo();'], str.extractScripts());
+
+    this.benchmark(function() { str.extractScripts() }, 1000);
   },
   
   testEvalScripts: function() {

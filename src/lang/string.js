@@ -29,6 +29,8 @@ Object.extend(String, {
 });
 
 Object.extend(String.prototype, (function() {
+  var scriptFragmentMatchAll = new RegExp(Prototype.ScriptFragment, 'img');
+  var scriptFragmentMatchOne = new RegExp(Prototype.ScriptFragment, 'im');
   
   function prepareReplacement(replacement) {
     if (Object.isFunction(replacement)) return replacement;
@@ -135,7 +137,7 @@ Object.extend(String.prototype, (function() {
    *  Strips a string of anything that looks like an HTML script block.
   **/
   function stripScripts() {
-    return this.replace(new RegExp(Prototype.ScriptFragment, 'img'), '');
+    return this.replace(scriptFragmentMatchAll, '');
   }
 
   /**
@@ -145,10 +147,8 @@ Object.extend(String.prototype, (function() {
    *  them as an array of strings.
   **/
   function extractScripts() {
-    var matchAll = new RegExp(Prototype.ScriptFragment, 'img');
-    var matchOne = new RegExp(Prototype.ScriptFragment, 'im');
-    return (this.match(matchAll) || []).map(function(scriptTag) {
-      return (scriptTag.match(matchOne) || ['', ''])[1];
+    return (this.match(scriptFragmentMatchAll) || []).map(function(scriptTag) {
+      return (scriptTag.match(scriptFragmentMatchOne) || ['', ''])[1];
     });
   }
 

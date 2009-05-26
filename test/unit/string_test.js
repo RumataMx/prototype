@@ -1,6 +1,5 @@
 new Test.Unit.Runner({
   testInterpret: function(){
-    console.profile(1);
     this.assertIdentical('true', String.interpret(true));
     this.assertIdentical('123',  String.interpret(123));
     this.assertIdentical('foo bar', String.interpret('foo bar'));
@@ -558,6 +557,5 @@ new Test.Unit.Runner({
     this.assertIdentical(true, 'true'.evalJSON());
     this.assertIdentical(false, 'false'.evalJSON());
     this.assertEqual('"', '"\\""'.evalJSON());
-    console.profileEnd(1);
   }
 });

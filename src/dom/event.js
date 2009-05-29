@@ -87,7 +87,7 @@
    *  button. When a mouse is in left-handed mode, the browser will report
    *  clicks of the _right_ button as "left-clicks."
   **/
-  function isLeftClick(event)   { return _isButton(event, 0) }
+  function isLeftClick(event)   { return _isButton(event, 0); }
   
   /**
    *  Event#isMiddleClick(@event) -> Boolean
@@ -95,7 +95,7 @@
    *  Determines whether a button-related mouse event involved the middle
    *  mouse button.
   **/
-  function isMiddleClick(event) { return _isButton(event, 1) }
+  function isMiddleClick(event) { return _isButton(event, 1); }
   
   /**
    *  Event#isRightClick(@event) -> Boolean
@@ -107,7 +107,7 @@
    *  mouse button. When a mouse is in left-handed mode, the browser will
    *  report clicks of the _left_ button as "left-clicks."
   **/
-  function isRightClick(event)  { return _isButton(event, 2) }
+  function isRightClick(event)  { return _isButton(event, 2); }
   
   /**
    *  Event#element(@event) -> Element
@@ -248,7 +248,7 @@
     if (window.Event && window.Event.prototype) {
       window.Event.prototype[id] = function(){ 
         return this; 
-      }
+      };
     }
 
     var el = document.createElement('input');
@@ -261,12 +261,12 @@
       tests.HAS_RETURN_VALUE = 'returnValue' in e;
       tests.HAS_STOP_PROPAGATION = 'stopPropagation' in e;
       tests.HAS_PREVENT_DEFAULT = 'preventDefault' in e;
-    }
+    };
     docEl.appendChild(el);
     el.click();
     
     // cleanup
-    docEl.removeChild(el)
+    docEl.removeChild(el);
     if (window.Event && window.Event.prototype) {
       delete window.Event.prototype[id];
     }

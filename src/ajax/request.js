@@ -174,7 +174,7 @@ Ajax.Request = Class.create(Ajax.Base, {
         for (var i = 0, length = extras.length; i < length; i += 2) 
           headers[extras[i]] = extras[i+1];
       else
-        $H(extras).each(function(pair) { headers[pair.key] = pair.value });
+        $H(extras).each(function(pair) { headers[pair.key] = pair.value; });
     }
 
     for (var name in headers) 
@@ -194,7 +194,7 @@ Ajax.Request = Class.create(Ajax.Base, {
   getStatus: function() {
     try {
       return this.transport.status || 0;
-    } catch (e) { return 0 } 
+    } catch (e) { return 0; } 
   },
   
   respondToReadyState: function(readyState) {

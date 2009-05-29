@@ -71,7 +71,7 @@ var Selector = Class.create({
       if (IS_DESCENDANT_SELECTOR_BUGGY) return false;
 
       return true;
-    }
+    };
     
   })(),
   
@@ -218,7 +218,8 @@ var Selector = Class.create({
     
     var match = true, name, matches;
     for (var i = 0, token; token = this.tokens[i]; i++) {
-      name = token[0], matches = token[1];
+      name = token[0]; 
+      matches = token[1];
       if (!Selector.assertions[name](element, matches)) {
         match = false; break;
       }
@@ -309,7 +310,7 @@ Object.extend(Selector, {
         while (e && le != e && (/\S/).test(e)) {
           le = e;
           for (var i = 0; i<len; i++) {
-            name = p[i].name
+            name = p[i].name;
             if (m = e.match(p[i].re)) {
               v = Object.isFunction(x[name]) ? x[name](m) : new Template(x[name]).evaluate(m);
               exclusion.push("(" + v.substring(1, v.length - 1) + ")");
@@ -449,7 +450,7 @@ Object.extend(Selector, {
           for (var i = 0, node; node = b[i]; i++)
             if (node.tagName !== "!") a.push(node);
           return a;
-        }
+        };
       }
       
       return concat;
@@ -471,7 +472,7 @@ Object.extend(Selector, {
         var el = document.createElement('div'), 
             isBuggy = false,
             propName = '_countedByPrototype',
-            value = 'x'
+            value = 'x';
         el[propName] = value;
         isBuggy = (el.getAttribute(propName) === value);
         el = null;
@@ -486,9 +487,9 @@ Object.extend(Selector, {
         } :
         function(nodes) {
           for (var i = 0, node; node = nodes[i]; i++)
-            node._countedByPrototype = void 0;
+            node._countedByPrototype = (function(){return;})();
           return nodes;
-        } 
+        };
     })(),
 
     // mark each child node with its position (for nth calls)

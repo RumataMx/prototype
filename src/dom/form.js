@@ -95,7 +95,7 @@ Form.Methods = {
       if (serializers[child.tagName.toLowerCase()])
         elements.push(Element.extend(child));
       return elements;
-    })
+    });
   },
   
   /**
@@ -160,7 +160,7 @@ Form.Methods = {
     });
     var firstByIndex = elements.findAll(function(element) {
       return element.hasAttribute('tabIndex') && element.tabIndex >= 0;
-    }).sortBy(function(element) { return element.tabIndex }).first();
+    }).sortBy(function(element) { return element.tabIndex; }).first();
     
     return firstByIndex ? firstByIndex : elements.find(function(element) {
       return ['input', 'select', 'textarea'].include(element.tagName.toLowerCase());
@@ -191,7 +191,8 @@ Form.Methods = {
    *  parameters and callbacks.
   **/
   request: function(form, options) {
-    form = $(form), options = Object.clone(options || { });
+    form = $(form); 
+    options = Object.clone(options || { });
 
     var params = options.parameters, action = form.readAttribute('action') || '';
     if (action.blank()) action = window.location.href;

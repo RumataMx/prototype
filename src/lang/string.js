@@ -35,7 +35,7 @@ Object.extend(String.prototype, (function() {
   function prepareReplacement(replacement) {
     if (Object.isFunction(replacement)) return replacement;
     var template = new Template(replacement);
-    return function(match) { return template.evaluate(match) };
+    return function(match) { return template.evaluate(match); };
   }
   
   /**
@@ -63,7 +63,8 @@ Object.extend(String.prototype, (function() {
         result += String.interpret(replacement(match));
         source  = source.slice(match.index + match[0].length);
       } else {
-        result += source, source = '';
+        result += source; 
+        source = '';
       }
     }
     return result;
@@ -159,7 +160,7 @@ Object.extend(String.prototype, (function() {
    *  Returns an array containing the value returned by each script.
   **/
   function evalScripts() {
-    return this.extractScripts().map(function(script) { return eval(script) });
+    return this.extractScripts().map(function(script) { return eval(script); });
   }
 
   /**
@@ -181,7 +182,7 @@ Object.extend(String.prototype, (function() {
     var div = document.createElement('div');
     div.innerHTML = this.stripTags();
     return div.childNodes[0] ? (div.childNodes.length > 1 ? 
-      $A(div.childNodes).inject('', function(memo, node) { return memo+node.nodeValue }) : 
+      $A(div.childNodes).inject('', function(memo, node) { return memo+node.nodeValue; }) : 
       div.childNodes[0].nodeValue) : '';
   }
 
@@ -251,7 +252,7 @@ Object.extend(String.prototype, (function() {
     if (len == 1) return parts[0];
 
     var camelized = this.charAt(0) == '-' 
-      ? parts[0].charAt(0).toUpperCase() + parts[0].substring(1)
+      ? (parts[0].charAt(0).toUpperCase() + parts[0].substring(1))
       : parts[0];
 
     for (var i = 1; i < len; i++)
@@ -451,11 +452,11 @@ String.prototype.escapeHTML.div.appendChild(String.prototype.escapeHTML.text);
 if ('<\n>'.escapeHTML() !== '&lt;\n&gt;') {
   String.prototype.escapeHTML = function() {
     return this.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+  };
 }
 
 if ('&lt;\n&gt;'.unescapeHTML() !== '<\n>') {
   String.prototype.unescapeHTML = function() {
     return this.stripTags().replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
-  }
+  };
 }

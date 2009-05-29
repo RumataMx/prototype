@@ -44,7 +44,7 @@ Object.extend(Function.prototype, (function() {
     return function() {
       var a = merge(args, arguments);
       return __method.apply(context, a);
-    }
+    };
   }
 
   /** related to: Function#bind
@@ -60,7 +60,7 @@ Object.extend(Function.prototype, (function() {
     return function(event) {
       var a = update([event || window.event], args);
       return __method.apply(context, a);
-    }
+    };
   }
 
   /**
@@ -78,7 +78,7 @@ Object.extend(Function.prototype, (function() {
     return function() {
       var a = merge(args, arguments);
       return __method.apply(this, a);
-    }
+    };
   }
 
   /**
@@ -96,7 +96,7 @@ Object.extend(Function.prototype, (function() {
   **/
   function delay(timeout) { 
     var __method = this, args = slice.call(arguments, 1);
-    timeout = timeout * 1000
+    timeout = timeout * 1000;
     return window.setTimeout(function() {
       return __method.apply(__method, args);
     }, timeout);
@@ -134,7 +134,7 @@ Object.extend(Function.prototype, (function() {
     return function() {
       var a = update([__method.bind(this)], arguments);
       return wrapper.apply(this, a);
-    }
+    };
   }
 
   /**
@@ -147,10 +147,10 @@ Object.extend(Function.prototype, (function() {
   function methodize() {
     if (this._methodized) return this._methodized;
     var __method = this;
-    return this._methodized = function() {
+    return (this._methodized = function() {
       var a = update([this], arguments);
       return __method.apply(null, a);
-    };
+    });
   }
   
   return {
@@ -162,6 +162,6 @@ Object.extend(Function.prototype, (function() {
     defer:               defer,
     wrap:                wrap,
     methodize:           methodize
-  }
+  };
 })());
 

@@ -58,7 +58,7 @@ var Hash = Class.create(Enumerable, (function() {
    *  Sets the hash’s `key` property to `value` and returns `value`.
   **/
   function set(key, value) {
-    return this._object[key] = value;
+    return (this._object[key] = value);
   }
 
   /**

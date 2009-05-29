@@ -35,7 +35,7 @@ var Class = (function() {
    *
    *  To extend a class after it has been defined, use [[Class#addMethods]].
   **/
-  function subclass() {};
+  function subclass() {}
   function create() {
     var parent = null, properties = $A(arguments);
     if (Object.isFunction(properties[0]))
@@ -51,7 +51,7 @@ var Class = (function() {
     
     if (parent) {
       subclass.prototype = parent.prototype;
-      klass.prototype = new subclass;
+      klass.prototype = new subclass();
       parent.subclasses.push(klass);
     }
     

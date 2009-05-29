@@ -70,7 +70,7 @@ if (!Node.ELEMENT_NODE) {
  *  
  *  Creates an HTML element with `tagName` as the tag name.
 **/
-(function(global) {
+(function(global, undefined) {
   
   // Test for IE's extended syntax
   // see: http://msdn.microsoft.com/en-us/library/ms536389.aspx
@@ -241,7 +241,7 @@ Element.Methods = {
           });
           Element._getContentFromAnonymousElement(tagName, content.stripScripts())
             .each(function(node) {
-              element.appendChild(node) 
+              element.appendChild(node);
             });
         }
         else {
@@ -299,9 +299,9 @@ Element.Methods = {
           var fragments = Element._getContentFromAnonymousElement(tagName, content.stripScripts());
           parent.removeChild(element);
           if (nextSibling)
-            fragments.each(function(node) { parent.insertBefore(node, nextSibling) });
+            fragments.each(function(node) { parent.insertBefore(node, nextSibling); });
           else 
-            fragments.each(function(node) { parent.appendChild(node) });
+            fragments.each(function(node) { parent.appendChild(node); });
         }
         else element.outerHTML = content.stripScripts();
 
@@ -612,7 +612,7 @@ Element.Methods = {
     element = $(element);
     var id = Element.readAttribute(element, 'id');
     if (id) return id;
-    do { id = 'anonymous_element_' + Element.idCounter++ } while ($(id));
+    do { id = 'anonymous_element_' + Element.idCounter++; } while ($(id));
     Element.writeAttribute(element, 'id', id);
     return id;
   },
@@ -802,7 +802,8 @@ Element.Methods = {
    *  Checks if `element` is a descendant of `ancestor`.
   **/
   descendantOf: function(element, ancestor) {
-    element = $(element), ancestor = $(ancestor);
+    element = $(element); 
+    ancestor = $(ancestor);
 
     if (element.compareDocumentPosition)
       return (element.compareDocumentPosition(ancestor) & 8) === 8;
@@ -847,7 +848,7 @@ Element.Methods = {
     var getComputed = HAS_COMPUTED_STYLE
       ? function(element, style) { var c = view.getComputedStyle(element, ''); return c ? c[style] : null; }
       // `currentStyle` is `null` on orphaned elements in IE
-      : function(element, style) { return element.currentStyle ? element.currentStyle[style] : '' }
+      : function(element, style) { return element.currentStyle ? element.currentStyle[style] : ''; };
     
     // IE
     var COMPUTED_WIDTH_HEIGHT_VALUES_ARE_ALWAYS_AUTO = getComputed(docEl, 'width') === 'auto';
@@ -990,7 +991,7 @@ Element.Methods = {
           }
           return value ? parseFloat(value) : 1.0;
         }
-      }
+      };
     }
     else if (HAS_FILTER) {
       return function(element) {
@@ -1000,7 +1001,7 @@ Element.Methods = {
           return parseFloat(match[1]) / 100;
         }
         return 1.0;
-      }
+      };
     }
   })(),
   
@@ -1415,7 +1416,7 @@ if (Prototype.Browser.IE) {
                 attribute = attribute.split('{')[1];
                 attribute = attribute.split('}')[0];
                 return attribute.strip();
-              }
+              };
             }
             // IE8
             else if (value === '') {
@@ -1424,7 +1425,7 @@ if (Prototype.Browser.IE) {
                 attribute = element.getAttribute(attribute);
                 if (!attribute) return null;
                 return attribute.strip();
-              }
+              };
             }
             el = null;
             return f;
@@ -1440,7 +1441,7 @@ if (Prototype.Browser.IE) {
           }
         }
       }
-    }
+    };
   })();
   
   Element._attributeTranslations.write = {
@@ -1515,7 +1516,7 @@ if (Prototype.Browser.IE) {
         if (arguments.length == 1) return element.firstDescendant();
         return Object.isNumber(expression) ? _descendants(element)[expression] :
           Element.select(element, expression)[index || 0];
-      }    
+      };    
     })();
   } 
 }
@@ -1531,7 +1532,7 @@ Element._getContentFromAnonymousElement = function(tagName, html) {
   var div = new Element('div'), t = Element._insertionTranslations.tags[tagName];
   if (t) {
     div.innerHTML = t[0] + html + t[1];
-    t[2].times(function() { div = div.firstChild });
+    t[2].times(function() { div = div.firstChild; });
   } else div.innerHTML = html;
   return $A(div.childNodes);
 };
@@ -1589,7 +1590,7 @@ Object.extend(Element, Element.Methods);
   
   div = null;
   
-})(document.createElement('div'))
+})(document.createElement('div'));
 
 /**
  *  Element.extend(element) -> Element
@@ -1645,7 +1646,7 @@ Element.extend = (function() {
           }
         }
         return element;
-      }
+      };
     }
     return Prototype.K;
   }
@@ -1845,7 +1846,7 @@ document.viewport = {
     
     property[D] = 'client' + D;
 
-    viewport['get' + D] = function() { return element[property[D]] };
+    viewport['get' + D] = function() { return element[property[D]]; };
     return viewport['get' + D]();
   }
   
@@ -1945,12 +1946,12 @@ Element.addMethods({
   clone: function(element, deep) {
     if (!(element = $(element))) return;
     var clone = element.cloneNode(deep);
-    clone._prototypeUID = void 0;
+    clone._prototypeUID = undefined;
     if (deep) {
       var descendants = Element.select(clone, '*'),
           i = descendants.length;
       while (i--) {
-        descendants[i]._prototypeUID = void 0;
+        descendants[i]._prototypeUID = (function(){return;})();
       }
     }
     return Element.extend(clone);
@@ -2041,7 +2042,7 @@ Element.addMethods({
       } while (element);
 
       return Element._returnOffset(valueL, valueT);
-    }
+    };
   }
   
   /**
@@ -2078,7 +2079,7 @@ Element.addMethods({
   **/
   function positionedOffset(element) {
     if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !element.parentNode) { // IE
-      return Element._returnOffset(0, 0)
+      return Element._returnOffset(0, 0);
     }
     if (BUGGY_OFFSET_VALUES_FOR_STATIC_ELEMENTS_INSIDE_POSITIONED_ONES()) {
       return fixedPositionOffset(element);
@@ -2129,7 +2130,7 @@ Element.addMethods({
   **/
   function viewportOffset(forElement) {
     if (OFFSET_PARENT_THROWS_ON_ORPHANED_ELEMENT && !forElement.parentNode) { // IE
-      return Element._returnOffset(0, 0)
+      return Element._returnOffset(0, 0);
     }
     var valueT = 0, valueL = 0;
 
@@ -2186,5 +2187,5 @@ Element.addMethods({
     positionedOffset:   positionedOffset,
     viewportOffset:     viewportOffset,
     getOffsetParent:    getOffsetParent
-  })
+  });
 })();

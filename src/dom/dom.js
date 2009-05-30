@@ -1638,10 +1638,11 @@ Element.extend = (function() {
     // since creating an APPLET element in IE installations without Java triggers warning popup, which we try to avoid
     if (HTMLOBJECTELEMENT_PROTOTYPE_BUGGY) {
       return function(element) {
-        var t;
-        if (element && (t = element.tagName)) {
-          if (/^(?:object|applet|embed)$/i.test(t)) {
+        if (element && typeof element._extendedByPrototype == 'undefined') {
+          var t = element.tagName;
+          if (t && (/^(?:object|applet|embed)$/i.test(t))) {
             extendElementWith(element, Element.Methods);
+            extendElementWith(element, Element.Methods.Simulated);
             extendElementWith(element, Element.Methods.ByTag[t.toUpperCase()]);
           }
         }

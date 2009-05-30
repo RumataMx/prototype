@@ -1,3 +1,5 @@
+* Replace array creation and `Array#include` with a more efficient `RegExp#test`. (kangax)
+
 * Make sure BUTTON elements are included in form serialization. (Luis Gomez, freshteapot, Samuel Lebeau, kangax)
 
 * Make sure (defficient) APPLET, OBJECT and EMBED elements are extended with simulated methods in IE8. Return early if _extendedByPrototype is present on an element. (Tobie Langel, kangax)

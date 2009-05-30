@@ -487,7 +487,7 @@ Object.extend(Selector, {
         } :
         function(nodes) {
           for (var i = 0, node; node = nodes[i]; i++)
-            node._countedByPrototype = (function(){return;})();
+            node._countedByPrototype = void 0;
           return nodes;
         };
     })(),

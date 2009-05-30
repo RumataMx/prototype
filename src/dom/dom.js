@@ -70,7 +70,7 @@ if (!Node.ELEMENT_NODE) {
  *  
  *  Creates an HTML element with `tagName` as the tag name.
 **/
-(function(global, undefined) {
+(function(global) {
   
   // Test for IE's extended syntax
   // see: http://msdn.microsoft.com/en-us/library/ms536389.aspx
@@ -1953,7 +1953,7 @@ Element.addMethods({
       var descendants = Element.select(clone, '*'),
           i = descendants.length;
       while (i--) {
-        descendants[i]._prototypeUID = (function(){return;})();
+        descendants[i]._prototypeUID = void 0;
       }
     }
     return Element.extend(clone);

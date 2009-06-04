@@ -653,11 +653,7 @@ Element.Methods = {
            element.attributes[name].value;
         }
       }
-      var value = element.getAttribute(name);
-      if (typeof value != 'string' && value === element[name]) {
-        return null;
-      }
-      return value;
+      return element.getAttribute(name);
     }
     return readAttribute;
   })(),
@@ -690,7 +686,7 @@ Element.Methods = {
         element.removeAttribute(name);
       else if (value === true)
         element.setAttribute(name, name);
-      else element.setAttribute(name, String(value));
+      else element.setAttribute(name, value);
     }
     return element;
   },

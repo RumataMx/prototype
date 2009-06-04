@@ -1,3 +1,5 @@
+* Use `location.hostname` instead of `location.host` in `isSameOrigin`. (Tobie Langel, kangax)
+
 * Replace array creation and `Array#include` with a more efficient `RegExp#test`. (kangax)
 
 * Make sure BUTTON elements are included in form serialization. (Luis Gomez, freshteapot, Samuel Lebeau, kangax)

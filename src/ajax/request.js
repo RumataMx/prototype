@@ -234,7 +234,7 @@ Ajax.Request = Class.create(Ajax.Base, {
     var m = this.url.match(/^\s*https?:\/\/[^\/]*/);
     return !m || (m[0] == '#{protocol}//#{domain}#{port}'.interpolate({
       protocol: location.protocol,
-      domain: location.host,
+      domain: location.hostname,
       port: location.port ? ':' + location.port : ''
     }));
   },

@@ -295,7 +295,7 @@ Element.Methods = {
         var parent = element.parentNode, tagName = parent.tagName.toUpperCase();
 
         if (Element._insertionTranslations.tags[tagName]) {
-          var nextSibling = element.next();
+          var nextSibling = Element.next(element);
           var fragments = Element._getContentFromAnonymousElement(tagName, content.stripScripts());
           parent.removeChild(element);
           if (nextSibling)
@@ -1525,11 +1525,17 @@ Element._returnOffset = function(l, t) {
 };
 
 Element._getContentFromAnonymousElement = function(tagName, html) {
-  var div = new Element('div'), t = Element._insertionTranslations.tags[tagName];
+  var div = document.createElement('div'),
+      t = Element._insertionTranslations.tags[tagName];
   if (t) {
     div.innerHTML = t[0] + html + t[1];
-    t[2].times(function() { div = div.firstChild; });
-  } else div.innerHTML = html;
+    for (var i = t[2]; i--; ) {
+      div = div.firstChild;
+    }
+  }
+  else {
+    div.innerHTML = html;
+  }
   return $A(div.childNodes);
 };
 

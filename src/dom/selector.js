@@ -553,17 +553,33 @@ Object.extend(Selector, {
       return results;
     },
 
-    nextElementSibling: function(node) {
-      while (node = node.nextSibling)
-        if (node.nodeType == 1) return node;
-      return null;
-    },
+    nextElementSibling: (function(){
+      if (typeof document.documentElement.nextElementSibling != 'undefined') {
+        return function(node){
+          return node.nextElementSibling;
+        };
+      }
+      return function(node) {
+        while (node = node.nextSibling) {
+          if (node.nodeType == 1) return node;
+        }
+        return null;
+      };
+    })(),
     
-    previousElementSibling: function(node) {
-      while (node = node.previousSibling)
-        if (node.nodeType == 1) return node;
-      return null;
-    },
+    previousElementSibling: (function(){
+      if (typeof document.documentElement.previousElementSibling != 'undefined') {
+        return function(node){
+          return node.previousElementSibling;
+        };
+      }
+      return function(node) {
+        while (node = node.previousSibling) {
+          if (node.nodeType == 1) return node;
+        }
+        return null;
+      };
+    })(),
     
     // TOKEN FUNCTIONS
     tagName: function(nodes, root, tagName, combinator) {

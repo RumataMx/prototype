@@ -457,10 +457,15 @@ Element.Methods = {
    *  returns them as an array of elements.
   **/
   immediateDescendants: function(element) {
-    if (!(element = $(element).firstChild)) return [];
-    while (element && element.nodeType != 1) element = element.nextSibling;
-    if (element) return [element].concat($(element).nextSiblings());
-    return [];
+    var children = $(element).childNodes, 
+        results = [],
+        child;
+    for (var i = 0; child = children[i++]; ) {
+      if (child.nodeType == 1) {
+        results.push(Element.extend(child));
+      }
+    }
+    return results;
   },
 
   /**

@@ -265,18 +265,35 @@ Element.Methods = {
    *  Replaces `element` _itself_ with `newContent` and returns `element`.
    *  
    *  Keep in mind that this method returns the element that has just been
-   *  removed — not the element that took its place.
+   *  removed — not the element that took its place. Also note that `Element.replace`
+   *  will not work with orphaned elements in certain clients
+   *  (notably, those implementing `Range::createContextualFragment` method)
+   *  To avoid such issues, it is recommended to invoke `Element#replace` on 
+   *  elements contained within a document.
   **/
   replace: (function(){
+    
     function replace(element, content) {
       element = $(element);
       if (content && content.toElement) content = content.toElement();
       else if (!Object.isElement(content)) {
         content = Object.toHTML(content);
         var range = element.ownerDocument.createRange();
-        range.selectNode(element);
         content.evalScripts.bind(content).defer();
-        content = range.createContextualFragment(content.stripScripts());
+        try {
+          range.selectNode(element);
+          content = range.createContextualFragment(content.stripScripts());
+        }
+        catch(e) {
+        /* 
+          Some clients (e.g. Konqueror) throw when trying to create a fragment from an incompatible markup 
+          (such as range.selectNode(<TR element>) --> range.createContextualFragment('<tr><td>...</td></tr>'))
+          Since determining proper "context" (i.e. parsing replacement element(s) tagName(s)) is error-prone, 
+          we fall back to a workaround of replacing element with `document.documentElement`
+        */
+          range.selectNode(document.documentElement);
+          content = range.createContextualFragment(content.stripScripts());
+        }
       }
       element.parentNode.replaceChild(content, element);
       return element;

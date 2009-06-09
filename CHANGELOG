@@ -1,3 +1,5 @@
+* Employ workaround for Konqueror where `Range::createContextualFragment` throws when used with incompatible markup. (kangax)
+
 * Use `Element::nextElementSibling` and `Element::previousElementSibling` (part of W3C ElementTraversal inteface, implemented in at least FF3.5) for perf. reasons. (kangax)
 
 * Remove unnecessary function object creation and `Number#times` in `Element._getContentFromAnonymousElement`. (kangax)

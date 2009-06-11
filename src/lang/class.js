@@ -9,6 +9,18 @@
  *  inheritance](http://prototypejs.org/learn/class-inheritance).
 **/
 var Class = (function() {
+
+  // some versions of JScript fail to enumerate over properties
+  // names of which correspond to properties further up the prototype
+  // chain that have {DontEnum} flag set
+  var IS_DONTENUM_BUGGY = (function(){
+    for (var p in { toString: 1 }) {
+      // check actual property name, so that it works with augmented Object.prototype
+      if (p === 'toString') return false;
+    }
+    return true;
+  })();
+
   /**
    *  Class.create([superclass][, methods...]) -> Class
    *  - superclass (Class): The optional superclass to inherit methods from.
@@ -86,9 +98,10 @@ var Class = (function() {
     var ancestor   = this.superclass && this.superclass.prototype;
     var properties = Object.keys(source);
     
-    // IE6 doesn't enumerate toString and valueOf properties,        
-    // Force copy if they're not coming from Object.prototype.      
-    if (!Object.keys({ toString: true }).length) {
+    // IE6 doesn't enumerate `toString` and `valueOf` (among other Object.prototype -owned) properties,
+    // Force copy if they're not coming from Object.prototype.
+    // do not copy other Object.prototype.* for performance reasons
+    if (IS_DONTENUM_BUGGY) {
       if (source.toString != Object.prototype.toString)
         properties.push("toString");
       if (source.valueOf != Object.prototype.valueOf)

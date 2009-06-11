@@ -1,3 +1,5 @@
+* Avoid object creation and an unnecessary function call in `Class#addMethods`, when working around JScript DontEnum bug. Replace with feature test and a simple boolean check at runtime. (kangax)
+
 * Employ workaround for Konqueror where `Range::createContextualFragment` throws when used with incompatible markup. (kangax)
 
 * Use `Element::nextElementSibling` and `Element::previousElementSibling` (part of W3C ElementTraversal inteface, implemented in at least FF3.5) for perf. reasons. (kangax)

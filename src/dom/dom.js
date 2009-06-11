@@ -1007,23 +1007,55 @@ Element.Methods = {
    *  Styles are passed as an object of property-value pairs in which the
    *  properties are specified in their camelized form (e.g., `fontSize`).
   **/
-  setStyle: function(element, styles) {
-    element = $(element);
-    var elementStyle = element.style, match;
-    if (Object.isString(styles)) {
-      element.style.cssText += ';' + styles;
-      return styles.include('opacity') ?
-        element.setOpacity(styles.match(/opacity:\s*(\d?\.?\d*)/)[1]) : element;
-    }
-    for (var property in styles)
-      if (property == 'opacity') element.setOpacity(styles[property]);
-      else 
-        elementStyle[(property == 'float' || property == 'cssFloat') ?
-          (Object.isUndefined(elementStyle.styleFloat) ? 'cssFloat' : 'styleFloat') : 
-            property] = styles[property];
-
-    return element;
-  },
+  setStyle: (function(){
+    
+    // Konqueror (at least 4.2.2) fails to change element's 
+    // overflow style if its value was set from within HTML
+    var IS_OVERFLOW_STYLE_BUGGY = (function(){
+      var isBuggy = false;
+      var el = document.createElement('div');
+      el.innerHTML = '<p style="overflow: visible;">x</p>';
+      var firstChild = el.firstChild;
+      if (firstChild && firstChild.style) {
+        firstChild.style.overflow = 'hidden';
+        isBuggy = firstChild.style.overflow !== 'hidden';
+      }
+      el = firstChild = null;
+      return isBuggy;
+    })();
+    
+    var reOverflow = /overflow\s*:\s*[^;]+;?/;
+    
+    return function(element, styles) {
+      element = $(element);
+      var elementStyle = element.style, match;
+      if (Object.isString(styles)) {
+        element.style.cssText += ';' + styles;
+        return styles.include('opacity') ?
+          element.setOpacity(styles.match(/opacity:\s*(\d?\.?\d*)/)[1]) : element;
+      }
+      for (var property in styles) {
+        if (property === 'opacity') {
+          element.setOpacity(styles[property]);
+        }
+        else if (property === 'overflow' && IS_OVERFLOW_STYLE_BUGGY) {
+          // Work around Konqueror bug by setting style via {read|write}Attribute
+          var styleValue = Element.readAttribute(element, 'style');
+          var newValue = 'overflow: ' + styles[property] + '; ';
+          Element.writeAttribute(element, 'style', 
+            (reOverflow.test(styleValue) 
+              ? styleValue.replace(reOverflow, newValue) 
+              : newValue + styleValue));
+        }
+        else {
+          elementStyle[(property == 'float' || property == 'cssFloat')
+            ? (Object.isUndefined(elementStyle.styleFloat) ? 'cssFloat' : 'styleFloat') 
+            : property] = styles[property];
+        }
+      }
+      return element;
+    }   
+  })(),
   
   /**
    *  Element#setOpacity(@element, value) -> Element
@@ -1182,8 +1214,9 @@ Element.Methods = {
     element = $(element);
     if (element._overflow) return element;
     element._overflow = Element.getStyle(element, 'overflow') || 'auto';
-    if (element._overflow !== 'hidden')
-      element.style.overflow = 'hidden';
+    if (element._overflow !== 'hidden') {
+      Element.setStyle(element, { overflow: 'hidden' });
+    }
     return element;
   },
 
@@ -1196,7 +1229,9 @@ Element.Methods = {
   undoClipping: function(element) {
     element = $(element);
     if (!element._overflow) return element;
-    element.style.overflow = element._overflow == 'auto' ? '' : element._overflow;
+    Element.setStyle(element, {
+      overflow: element._overflow == 'auto' ? '' : element._overflow
+    });
     element._overflow = null;
     return element;
   },

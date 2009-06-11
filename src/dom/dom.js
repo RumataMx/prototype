@@ -742,18 +742,6 @@ Element.Methods = {
   },
 
   /**
-   *  Element#hasClassName(@element, className) -> Boolean
-   *  
-   *  Checks whether `element` has the given CSS class name.
-  **/
-  hasClassName: function(element, className) {
-    if (!(element = $(element))) return;
-    var elementClassName = element.className;
-    return (elementClassName.length > 0 && (elementClassName == className || 
-      new RegExp("(^|\\s)" + className + "(\\s|$)").test(elementClassName)));
-  },
-
-  /**
    *  Element#addClassName(@element, className) -> Element
    *  
    *  Adds a CSS class to `element`.
@@ -762,18 +750,6 @@ Element.Methods = {
     if (!(element = $(element))) return;
     if (!Element.hasClassName(element, className))
       element.className += (element.className ? ' ' : '') + className;
-    return element;
-  },
-
-  /**
-   *  Element#removeClassName(@element, className) -> Element
-   *  
-   *  Removes a CSS class from `element`.
-  **/
-  removeClassName: function(element, className) {
-    if (!(element = $(element))) return;
-    element.className = element.className.replace(
-      new RegExp("(^|\\s+)" + className + "(\\s+|$)"), ' ').strip();
     return element;
   },
   
@@ -1347,6 +1323,46 @@ Element.Methods = {
     return element;
   }
 };
+
+(function(){
+
+  // Memoize non-literal RegExp objects,
+  // construction of which is relatively expensive in some clients (e.g some versions of Firefox and Opera)
+  // Inspired by APE and YUI Javascript libraries
+  var regexCache = { };
+
+  function getClassNameRegex(className) {
+    var _className = "(?:^|\\s+)" + className + "(?:\\s+|$)";
+    return (regexCache[_className] || (regexCache[_className] = new RegExp(_className)));
+  }
+
+  Object.extend(Element.Methods, {
+    /**
+     *  Element#hasClassName(@element, className) -> Boolean
+     *
+     *  Checks whether `element` has the given CSS class name.
+    **/
+    hasClassName: function(element, className) {
+      if (!(element = $(element))) return;
+      var elementClassName = element.className;
+      var re = getClassNameRegex(className)
+      return (elementClassName.length > 0 &&
+        (elementClassName == className || re.test(elementClassName)));
+    },
+
+    /**
+     *  Element#removeClassName(@element, className) -> Element
+     *
+     *  Removes a CSS class from `element`.
+    **/
+    removeClassName: function(element, className) {
+      if (!(element = $(element))) return;
+      var re = getClassNameRegex(className);
+      element.className = element.className.replace(re, ' ').strip();
+      return element;
+    }
+  });
+})();
 
 Object.extend(Element.Methods, {
   /** alias of: Element.select

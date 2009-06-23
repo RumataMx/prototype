@@ -4,6 +4,7 @@
  *  Extensions to the built-in `Function` object.
 **/
 Object.extend(Function.prototype, (function() {
+  
   var slice = Array.prototype.slice;
   
   function update(array, args) {
@@ -41,10 +42,16 @@ Object.extend(Function.prototype, (function() {
   function bind(context) {
     if (arguments.length < 2 && Object.isUndefined(arguments[0])) return this;
     var __method = this, args = slice.call(arguments, 1);
+    if (args.length) {
+      return function() {
+        return __method.apply(context, arguments.length ? merge(args, arguments) : args);
+      };
+    }
     return function() {
-      var a = merge(args, arguments);
-      return __method.apply(context, a);
-    };
+      return arguments.length 
+        ? __method.apply(context, arguments) 
+        : __method.call(context);
+    }
   }
 
   /** related to: Function#bind
@@ -57,10 +64,15 @@ Object.extend(Function.prototype, (function() {
   **/
   function bindAsEventListener(context) {
     var __method = this, args = slice.call(arguments, 1);
+    if (args.length) {
+      return function(event) {
+        var a = update([event || window.event], args);
+        return __method.apply(context, a);
+      }
+    }
     return function(event) {
-      var a = update([event || window.event], args);
-      return __method.apply(context, a);
-    };
+      return __method.call(context, event || window.event);
+    }
   }
 
   /**
@@ -76,8 +88,7 @@ Object.extend(Function.prototype, (function() {
     if (!arguments.length) return this;
     var __method = this, args = slice.call(arguments, 0);
     return function() {
-      var a = merge(args, arguments);
-      return __method.apply(this, a);
+      return __method.apply(this, arguments.length ? merge(args, arguments) : args)
     };
   }
 
@@ -97,9 +108,10 @@ Object.extend(Function.prototype, (function() {
   function delay(timeout) { 
     var __method = this, args = slice.call(arguments, 1);
     timeout = timeout * 1000;
-    return window.setTimeout(function() {
-      return __method.apply(__method, args);
-    }, timeout);
+    var fn = args.length
+      ? function() { return __method.apply(__method, args); }
+      : function() { return __method.call(__method); }
+    return window.setTimeout(fn, timeout);
   }
 
   /**
@@ -114,8 +126,9 @@ Object.extend(Function.prototype, (function() {
    *  it runs.
   **/
   function defer() {
-    var args = update([0.01], arguments);
-    return this.delay.apply(this, args);
+    return arguments.length
+      ? this.delay.apply(this, update([0.01], arguments))
+      : this.delay(0.01)
   }
 
   /**
@@ -132,8 +145,9 @@ Object.extend(Function.prototype, (function() {
   function wrap(wrapper) {
     var __method = this;
     return function() {
-      var a = update([__method.bind(this)], arguments);
-      return wrapper.apply(this, a);
+      return arguments.length
+        ? wrapper.apply(this, update([__method.bind(this)], arguments))
+        : wrapper.call(this, __method.bind(this));
     };
   }
 
@@ -148,8 +162,9 @@ Object.extend(Function.prototype, (function() {
     if (this._methodized) return this._methodized;
     var __method = this;
     return (this._methodized = function() {
-      var a = update([this], arguments);
-      return __method.apply(null, a);
+      return arguments.length
+        ? __method.apply(null, update([this], arguments))
+        : __method(this);
     });
   }
   
@@ -164,4 +179,3 @@ Object.extend(Function.prototype, (function() {
     methodize:           methodize
   };
 })());
-

@@ -84,6 +84,9 @@
 var $break = { };
 
 var Enumerable = (function() {
+  
+  var slice = Array.prototype.slice;
+  
   /**
    *  Enumerable#each(iterator[, context]) -> Enumerable
    *  - iterator (Function): A `Function` that expects an item in the
@@ -275,10 +278,11 @@ var Enumerable = (function() {
    *  Returns the results of the method calls.
   **/
   function invoke(method) {
-    var args = $A(arguments).slice(1);
-    return this.map(function(value) {
-      return value[method].apply(value, args);
-    });
+    var args = slice.call(arguments, 1);
+    var fn = args.length
+      ? function(value) { return value[method].apply(value, args); }
+      : function(value) { return value[method].call(value); };
+    return this.map(fn);
   }
   
   /**

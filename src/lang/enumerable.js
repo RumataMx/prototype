@@ -281,7 +281,7 @@ var Enumerable = (function() {
     var args = slice.call(arguments, 1);
     var fn = args.length
       ? function(value) { return value[method].apply(value, args); }
-      : function(value) { return value[method].call(value); };
+      : function(value) { return value[method](); };
     return this.map(fn);
   }
   

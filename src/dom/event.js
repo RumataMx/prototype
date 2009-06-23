@@ -251,10 +251,10 @@
       };
     }
 
-    var el = document.createElement('input');
-    el.type = 'checkbox';
-    el.onclick = function(e) {
+    var elForm = document.createElement('form');
+    elForm.onreset = function(e) {
       e = e || window.event;
+      tests.__eventIntercepted = true;
       // check that method exists and sets context properly
       tests.HAS_EVENT_EXTENSIONS = id in e && (e[id]() === e);
       tests.HAS_CANCEL_BUBBLE = 'cancelBubble' in e;
@@ -262,17 +262,19 @@
       tests.HAS_STOP_PROPAGATION = 'stopPropagation' in e;
       tests.HAS_PREVENT_DEFAULT = 'preventDefault' in e;
     };
-    docEl.appendChild(el);
-    el.click();
+    elForm.reset();
     
-    // cleanup
-    docEl.removeChild(el);
+    if (!tests.__eventIntercepted) {
+      docEl.appendChild(elForm);
+      elForm.reset();
+      docEl.removeChild(elForm);
+    }
+    
     if (window.Event && window.Event.prototype) {
       delete window.Event.prototype[id];
     }
-    el.onclick = null;
-    el = null;
-    
+    elForm.onreset = null;
+    elForm = docEl = null;
   })();  
   
   // Compile the list of methods that get extended onto Events.

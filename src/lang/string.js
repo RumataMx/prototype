@@ -29,8 +29,8 @@ Object.extend(String, {
 });
 
 Object.extend(String.prototype, (function() {
-  var scriptFragmentMatchAll = new RegExp(Prototype.ScriptFragment, 'img');
-  var scriptFragmentMatchOne = new RegExp(Prototype.ScriptFragment, 'im');
+  var scriptFragmentMatchAll = new RegExp(Prototype.ScriptFragment, 'ig');
+  var scriptFragmentMatchOne = new RegExp(Prototype.ScriptFragment, 'i');
   
   function prepareReplacement(replacement) {
     if (Object.isFunction(replacement)) return replacement;
@@ -276,7 +276,11 @@ Object.extend(String.prototype, (function() {
    *  Converts a camelized string into a series of words separated by an underscore ("_").
   **/
   function underscore() {
-    return this.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'#{1}_#{2}').gsub(/([a-z\d])([A-Z])/,'#{1}_#{2}').gsub(/-/,'_').toLowerCase();
+    return this.replace(/::/g, '/')
+               .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+               .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+               .replace(/-/g, '_')
+               .toLowerCase();
   }
 
   /**
@@ -285,7 +289,7 @@ Object.extend(String.prototype, (function() {
    *  Replaces every instance of the underscore character ("_") by a dash ("-").
   **/
   function dasherize() {
-    return this.gsub(/_/,'-');
+    return this.replace(/_/g, '-');
   }
 
   /** related to: Object.inspect
@@ -319,7 +323,7 @@ Object.extend(String.prototype, (function() {
    *  This security method is called internally.
   **/
   function unfilterJSON(filter) {
-    return this.sub(filter || Prototype.JSONFilter, '#{1}');
+    return this.replace(filter || Prototype.JSONFilter, '$1');
   }
 
   /**

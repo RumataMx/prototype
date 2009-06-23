@@ -1,3 +1,5 @@
+* Use `String#replace` instead of `String#gsub` when replacement is a non-function for perf. reasons (Samuel Lebeau, kangax)
+
 * Fix Konqueror bug when value of element's overflow style can not be changed if it was set in html. (kangax)
 
 * Memoize non-literal RegExp objects in `Element#hasClassName` and `Element#removeClassName` for performance. (kangax)

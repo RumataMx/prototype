@@ -247,7 +247,17 @@ Object.extend(String.prototype, (function() {
    *  Converts a string separated by dashes into a camelCase equivalent. 
    *  For instance, 'foo-bar' would be converted to 'fooBar'.
   **/
+  
+  /* 
+    `String#camelize` usually operates on a small number of repeating strings 
+    (e.g. background-color -> backgroundColor) so we take advantage of caching
+  */
+  
+  var camelizeCache = { };
   function camelize() {
+    if (typeof camelizeCache[this] == 'string') {
+      return camelizeCache[this];
+    }
     var parts = this.split('-'), len = parts.length;
     if (len == 1) return parts[0];
 
@@ -258,7 +268,7 @@ Object.extend(String.prototype, (function() {
     for (var i = 1; i < len; i++)
       camelized += parts[i].charAt(0).toUpperCase() + parts[i].substring(1);
 
-    return camelized;
+    return (camelizeCache[this] = camelized);
   }
 
   /**

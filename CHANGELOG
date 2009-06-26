@@ -1,3 +1,5 @@
+* Memoize `String#camelize` input. (kangax)
+
 * Avoid unnecessary array object creation and merging in functional methods. Avoid `Function#apply` when `Function#call` is sufficient. This should result in noticeable perf. boost since most of DOM related functions are productions of `methodize` (kangax)
 
 * Use `String#replace` instead of `String#gsub` when replacement is a non-function for perf. reasons (Samuel Lebeau, kangax)

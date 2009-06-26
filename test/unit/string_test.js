@@ -150,6 +150,8 @@ new Test.Unit.Runner({
     this.assertEqual('classNameTest','className-test'.camelize());
     this.assertEqual('classNameTest','class-nameTest'.camelize());
     
+    this.assertEqual('toString','toString'.camelize(), 'Built-in Object.prototype.* members should not interfere');
+    
     /* this.benchmark(function(){
       'class-name-test'.camelize();
     },10000); */

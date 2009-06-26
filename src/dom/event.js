@@ -498,19 +498,19 @@
       
       if (Object.isUndefined(responders)) return element;
       
-      responders.each( function(r) {
-        Element.stopObserving(element, eventName, r.handler);
-      });
+      for (var i = responders.length; i--; ) {
+        Element.stopObserving(element, eventName, responders[i].handler);
+      }
       return element;
-    } else if (!eventName) {
+    } 
+    else if (!eventName) {
       // If both the event name and the handler are omitted, we stop observing
       // _all_ handlers on the element.
       registry.each( function(pair) {
         var eventName = pair.key, responders = pair.value;
-        
-        responders.each( function(r) {
-          Element.stopObserving(element, eventName, r.handler);
-        });        
+        for (var i = responders.length; i--; ) {
+          Element.stopObserving(element, eventName, responders[i].handler);
+        }        
       });
       return element;
     }
@@ -540,8 +540,9 @@
       else
         element.detachEvent('on' + actualEventName, responder);
     }
-      
-    registry.set(eventName, responders.without(responder));
+    
+    responders.splice(responders.indexOf(responder), 1);
+    registry.set(eventName, responders);
 
     return element;
   }

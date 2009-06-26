@@ -233,14 +233,10 @@ var Enumerable = (function() {
     if (Object.isFunction(this.indexOf))
       if (this.indexOf(object) != -1) return true;
 
-    var found = false;
-    this.each(function(value) {
-      if (value == object) {
-        found = true;
-        throw $break;
-      }
+    var found = this.detect(function(value) {
+      return value == object;
     });
-    return found;
+    return typeof found != 'undefined';
   }
   
   /**

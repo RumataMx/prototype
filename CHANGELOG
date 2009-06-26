@@ -1,3 +1,5 @@
+* Use `Enumerable#detect` in `Enumerable#include` to avoid duplication. (kangax)
+
 * Memoize `String#capitalize` input. (kangax)
 
 * Memoize `String#camelize` input. (kangax)

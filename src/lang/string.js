@@ -276,8 +276,12 @@ Object.extend(String.prototype, (function() {
    *
    *  Capitalizes the first letter of a string and downcases all the others.
   **/
+  var capitalizeCache = { };
   function capitalize() {
-    return this.charAt(0).toUpperCase() + this.substring(1).toLowerCase();
+    if (typeof capitalizeCache[this] == 'string') {
+      return capitalizeCache[this];
+    }
+    return (capitalizeCache[this] = this.charAt(0).toUpperCase() + this.substring(1).toLowerCase());
   }
 
   /**

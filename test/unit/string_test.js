@@ -165,6 +165,8 @@ new Test.Unit.Runner({
     this.assertEqual('Hello','HELLO'.capitalize());
     this.assertEqual('Hello','Hello'.capitalize());
     this.assertEqual('Hello world','hello WORLD'.capitalize());
+    
+    this.assertEqual('Tostring', 'toString'.capitalize(), 'Built-in Object.prototype.* members should not interfere')
   },  
     
   testUnderscore: function() {

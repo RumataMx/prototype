@@ -253,10 +253,10 @@ Object.extend(String.prototype, (function() {
     (e.g. background-color -> backgroundColor) so we take advantage of caching
   */
   
-  var camelizeCache = { };
+  var camelizeCache = { }, cached;
   function camelize() {
-    if (typeof camelizeCache[this] == 'string') {
-      return camelizeCache[this];
+    if (typeof (cached = camelizeCache[this]) == 'string') {
+      return cached;
     }
     var parts = this.split('-'), len = parts.length;
     if (len == 1) return parts[0];
@@ -276,10 +276,10 @@ Object.extend(String.prototype, (function() {
    *
    *  Capitalizes the first letter of a string and downcases all the others.
   **/
-  var capitalizeCache = { };
+  var capitalizeCache = { }, cached;
   function capitalize() {
-    if (typeof capitalizeCache[this] == 'string') {
-      return capitalizeCache[this];
+    if (typeof (cached = capitalizeCache[this]) == 'string') {
+      return cached;
     }
     return (capitalizeCache[this] = this.charAt(0).toUpperCase() + this.substring(1).toLowerCase());
   }
